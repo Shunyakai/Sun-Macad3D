@@ -1,0 +1,6 @@
+/.intermediate
+/.vs
+/_ReSharper.Caches
+/bin
+*.user
+launchSettings.json

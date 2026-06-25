@@ -1,0 +1,68 @@
+name: CI
+
+on: [pull_request, push]
+  
+permissions:
+  checks: write
+  pull-requests: write
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-2025-vs2026
+
+    steps:
+      - name: Create sanitized event
+        shell: pwsh
+        run: |
+          jq '{
+            pull_request: {
+              head: {
+                sha: .pull_request.head.sha
+              },
+              number: .pull_request.number,
+              base: {
+                sha: .pull_request.base.sha,
+                repo: {
+                  full_name: .pull_request.base.repo.full_name
+                }
+              }
+            },
+            repository: {
+              default_branch: .repository.default_branch,
+            },
+            before: .before
+          }' "$env:GITHUB_EVENT_PATH" |
+          Out-File -Encoding utf8 event-sanitized.json
+
+      - name: Upload event file
+        uses: actions/upload-artifact@v4
+        with:
+          name: event-file
+          path: event-sanitized.json
+          retention-days: 1
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build
+        uses: ./.github/actions/build
+          
+  test:
+    name: Run Tests
+    needs: build
+    runs-on: windows-2025-vs2026
+
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [core, interaction, exchange, memory]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run unit tests
+        uses: ./.github/actions/test
+        with:
+          module: ${{ matrix.module }}

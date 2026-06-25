@@ -1,0 +1,16 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration>Release</Configuration>
+    <Platform>x64</Platform>
+    <PublishDir>$(MMRootDir)Bin\Publish</PublishDir>
+    <PublishProtocol>FileSystem</PublishProtocol>
+    <TargetFramework>$(MMFramework)</TargetFramework>
+    <RuntimeIdentifier>$(MMRuntime)</RuntimeIdentifier>
+    <PublishSelfContained>False</PublishSelfContained>
+    <PublishSingleFile>False</PublishSingleFile>
+    <PublishReadyToRun>True</PublishReadyToRun>
+    <IsPublishable>True</IsPublishable>
+    <AppHostDotNetSearch>AppRelative</AppHostDotNetSearch>
+    <AppHostRelativeDotNet>DotNetRuntime</AppHostRelativeDotNet>
+  </PropertyGroup>
+</Project>

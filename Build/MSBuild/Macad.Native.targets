@@ -1,0 +1,135 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Project="Macad.Common.props" Condition="!Exists('$(MMRootDir)')" />
+  
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+<!-- Embed arbitrary binary files as strings in CPP projects -->
+  
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <PropertyGroup>
+    <EmbeddedBinariesOutFile>$(IntDir)EmbeddedBinaries.generated.cpp</EmbeddedBinariesOutFile>
+  </PropertyGroup>
+
+  <ItemGroup Condition="@(EmbeddedBinary) != ''">
+    <!-- Reference the BuildTools project for the binary processing tasks -->
+    <ProjectReference Include="..\..\Tools\BuildTools\BuildTools.csproj"> 
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <Private>false</Private>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+
+    <!-- Add outfile to compiler -->
+    <ClCompile Include="$(EmbeddedBinariesOutFile)">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+
+  <Target Name="EmbedBinaryFiles"
+          AfterTargets="ResolveProjectReferences"
+          Inputs="@(EmbeddedBinary)"
+          Outputs="$(EmbeddedBinariesOutFile)">
+
+    <PropertyGroup>
+      <_ListFile>$(IntDir)EmbeddedBinariesList.txt</_ListFile>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(IntDir)" />  
+    <WriteLinesToFile File="$(_ListFile)" 
+                      Lines="@(EmbeddedBinary -> '%(FullPath)')" 
+                      Overwrite="true" />
+
+    <Exec Command="dotnet &quot;$(TargetDir)BuildTools.dll&quot;  EmbedBinaries In=&quot;$(_ListFile)&quot; Out=&quot;$(EmbeddedBinariesOutFile)&quot;" />
+
+  </Target>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <Target Name="CleanEmbeddedBinaries"
+          AfterTargets="AfterClean">
+  
+    <Delete Files="$(EmbeddedBinariesOutFile)" />
+  
+  </Target>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <!-- Target to add VC runtime files to main publish output -->
+  <Target Name="GetVCRuntimeCopyToPublishDirectoryItems"
+          BeforeTargets="GetCopyToPublishDirectoryItems"
+          Returns="@(AllPublishItemsFullPathWithTargetPath)">
+
+    <ItemGroup>
+      <VCRuntimeFiles Include="$(VC_CppRuntimeFilesPath_x64)\Microsoft.VC$(PlatformToolsetVersion).CRT\*.dll" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AllPublishItemsFullPathWithTargetPath Include="@(VCRuntimeFiles)">
+        <TargetPath>%(Filename)%(Extension)</TargetPath>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </AllPublishItemsFullPathWithTargetPath>
+    </ItemGroup>
+
+  </Target>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  
+  <!-- Target to create version info file -->
+  <PropertyGroup>
+    <VersionInfoRcFile>$(IntDir)VersionInfo.generated.rc</VersionInfoRcFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ResourceCompile Include="$(VersionInfoRcFile)">
+      <Visible>False</Visible>
+    </ResourceCompile>
+  </ItemGroup>
+
+  <Target Name="GenerateVersionInfoRc" 
+          BeforeTargets="ResourceCompile">
+    <PropertyGroup>
+      <VersionCommas>$([System.String]::Copy('$(FileVersion)').Replace('.', ','))</VersionCommas>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <VersionInfoLines Include="#include &lt;winres.h&gt;" />
+      <VersionInfoLines Include="VS_VERSION_INFO VERSIONINFO" />
+      <VersionInfoLines Include="    FILEVERSION    $(VersionCommas)" />
+      <VersionInfoLines Include="    PRODUCTVERSION $(VersionCommas)" />
+      <VersionInfoLines Include="BEGIN" />
+      <VersionInfoLines Include="    BLOCK &quot;StringFileInfo&quot;" />
+      <VersionInfoLines Include="    BEGIN" />
+      <VersionInfoLines Include="        BLOCK &quot;040904b0&quot;" />
+      <VersionInfoLines Include="        BEGIN" />
+      <VersionInfoLines Include="            VALUE &quot;FileVersion&quot;, &quot;$(FileVersion)\0&quot;%3B" />
+      <VersionInfoLines Include="            VALUE &quot;ProductVersion&quot;, &quot;$(ProductVersion)\0&quot;%3B" />
+      <VersionInfoLines Include="            VALUE &quot;ProductName&quot;, &quot;$(Product)\0&quot;%3B" />
+      <VersionInfoLines Include="            VALUE &quot;LegalCopyright&quot;, &quot;$(Copyright)\0&quot;%3B" />
+      <VersionInfoLines Include="            VALUE &quot;CompanyName&quot;, &quot;$(Company)\0&quot;%3B" />
+      <VersionInfoLines Include="        END" />
+      <VersionInfoLines Include="    END" />
+      <VersionInfoLines Include="    BLOCK &quot;VarFileInfo&quot;" />
+      <VersionInfoLines Include="    BEGIN" />
+      <VersionInfoLines Include="            VALUE &quot;Translation&quot;, 0x409, 1200" />
+      <VersionInfoLines Include="    END" />
+      <VersionInfoLines Include="END" />
+    </ItemGroup>
+
+    <WriteLinesToFile
+        File="$(VersionInfoRcFile)"
+        Lines="@(VersionInfoLines)"
+        Overwrite="true"
+        Encoding="UTF-8" />
+  </Target>
+
+  <Target Name="CleanAssemblyVersionInfo"
+          AfterTargets="AfterClean">
+    <Delete Files="$(VersionInfoRcFile)" />
+  </Target>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+</Project>
