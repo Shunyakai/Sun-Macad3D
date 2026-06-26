@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using Macad.Interaction.Editors.Shapes;
 using Macad.Common;
@@ -71,6 +71,13 @@ public sealed class EditorState : BaseObject, IDisposable
 
     //--------------------------------------------------------------------------------------------------
 
+    public bool SketchConstructionModeActive
+    {
+        get { return _CurrentSketchEditorTool?.UseAuxiliaryMode ?? false; }
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
     SketchEditorTool _CurrentSketchEditorTool;
         
     void _UpdateSketchEditTool(SketchEditorTool sketchEditorTool)
@@ -87,6 +94,7 @@ public sealed class EditorState : BaseObject, IDisposable
             _CurrentSketchEditorTool = sketchEditorTool;
             _CurrentSketchEditorTool.PropertyChanged += _SketchEditorTool_PropertyChanged;
             RaisePropertyChanged(nameof(SketchClipPlaneEnabled));
+            RaisePropertyChanged(nameof(SketchConstructionModeActive));
         }
     }
 
@@ -104,6 +112,10 @@ public sealed class EditorState : BaseObject, IDisposable
         else if (e.PropertyName == nameof(SketchEditorTool.ClipPlaneEnabled))
         {
             RaisePropertyChanged(nameof(SketchClipPlaneEnabled));
+        }
+        else if (e.PropertyName == nameof(SketchEditorTool.UseAuxiliaryMode))
+        {
+            RaisePropertyChanged(nameof(SketchConstructionModeActive));
         }
     }
 

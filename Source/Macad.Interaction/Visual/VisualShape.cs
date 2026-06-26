@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Macad.Common;
 using Macad.Core;
@@ -238,9 +238,11 @@ public sealed class VisualShape : VisualObject
         _Options = options;
         if (entity != null)
         {
-            /*_VisualStyle = entity.GetVisualStyleComponent();
-            if (_VisualStyle != null)
-                _VisualStyle.VisualStyleChanged += _VisualStyle_VisualStyleChanged;*/
+            var visualStyle = (entity as Body)?.FindComponent<VisualStyle>(true);
+            if (visualStyle != null)
+            {
+                SetVisualStyle(visualStyle);
+            }
         }
         Update();
     }
@@ -249,6 +251,11 @@ public sealed class VisualShape : VisualObject
 
     public override void Remove()
     {
+        if (_VisualStyle != null)
+        {
+            _VisualStyle.VisualStyleChanged -= _VisualStyle_VisualStyleChanged;
+            _VisualStyle = null;
+        }
         if (_AisShape != null)
         {
             AisContext.Remove(_AisShape, false);
@@ -272,14 +279,31 @@ public sealed class VisualShape : VisualObject
         var brep = OverrideBrep ?? (Entity as Body)?.GetTransformedBRep(true);
         if (brep != null)
         {
+            var visualStyle = _VisualStyle;
             if (_AisShape != null)
             {
                 Remove();
             }
 
-            _AisShape = new AIS_Shape(brep);
+            _AisShape = new AIS_ColoredShape(brep);
             _AisShape.SetOwner(new AISX_Guid(Entity.Guid));
-            _UpdatePresentation();
+
+            if (visualStyle != null)
+            {
+                SetVisualStyle(visualStyle);
+            }
+            else
+            {
+                var newVisualStyle = (Entity as Body)?.FindComponent<VisualStyle>(true);
+                if (newVisualStyle != null)
+                {
+                    SetVisualStyle(newVisualStyle);
+                }
+                else
+                {
+                    _UpdatePresentation();
+                }
+            }
         }
 
         _UpdateAisDisplay();
@@ -305,6 +329,71 @@ public sealed class VisualShape : VisualObject
         }
 
         _AisShape.SetAttributes(attributeSet.Drawer);
+
+        var coloredShape = _AisShape as AIS_ColoredShape;
+        if (coloredShape != null)
+        {
+            coloredShape.ClearCustomAspects();
+        }
+
+        // --- VISUAL STYLE OVERRIDES ---
+        if (_VisualStyle != null)
+        {
+            _AisShape.SetColor(_VisualStyle.Color.ToQuantityColor());
+            _AisShape.SetTransparency(_VisualStyle.Transparency);
+            if (_VisualStyle.Material != Graphic3d_NameOfMaterial.DEFAULT)
+            {
+                _AisShape.SetMaterial(new Graphic3d_MaterialAspect(_VisualStyle.Material));
+            }
+            else
+            {
+                _AisShape.UnsetMaterial();
+            }
+
+            // Apply face appearances
+            if (coloredShape != null && _VisualStyle.FaceAppearances != null && _VisualStyle.FaceAppearances.Count > 0)
+            {
+                var brep = OverrideBrep ?? (Entity as Body)?.GetTransformedBRep(true);
+                if (brep != null)
+                {
+                    var faces = new System.Collections.Generic.List<TopoDS_Shape>();
+                    var explorer = new TopExp_Explorer(brep, TopAbs_ShapeEnum.FACE, TopAbs_ShapeEnum.SHAPE);
+                    while (explorer.More())
+                    {
+                        faces.Add(explorer.Current());
+                        explorer.Next();
+                    }
+
+                    foreach (var faceApp in _VisualStyle.FaceAppearances)
+                    {
+                        if (faceApp.FaceIndex >= 0 && faceApp.FaceIndex < faces.Count)
+                        {
+                            var faceShape = faces[faceApp.FaceIndex];
+                            
+                            coloredShape.SetCustomColor(faceShape, faceApp.Color.ToQuantityColor());
+                            coloredShape.SetCustomTransparency(faceShape, faceApp.Transparency);
+                            
+                            if (faceApp.Material != Graphic3d_NameOfMaterial.DEFAULT)
+                            {
+                                var customAspects = coloredShape.CustomAspects(faceShape);
+                                var shadingAspect = new Prs3d_ShadingAspect();
+                                shadingAspect.SetColor(faceApp.Color.ToQuantityColor());
+                                shadingAspect.SetTransparency(faceApp.Transparency);
+                                shadingAspect.SetMaterial(new Graphic3d_MaterialAspect(faceApp.Material));
+                                customAspects.SetShadingAspect(shadingAspect);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            _AisShape.UnsetColor();
+            _AisShape.UnsetTransparency();
+            _AisShape.UnsetMaterial();
+        }
+
         _AisShape.SynchronizeAspects();
 
         if (_Options.HasFlag(Options.Ghosting))

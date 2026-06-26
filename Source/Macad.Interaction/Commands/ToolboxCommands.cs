@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using Macad.Interaction.Dialogs;
@@ -261,6 +261,72 @@ public static class ToolboxCommands
         Title = () => "Convert to Solid",
         Description = () => "Convert the current shape into a single solid shape and replace the whole shape stack of the selected body with it.",
         Icon = () => "Tool-ConvertToSolid",
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand MeasureDistance { get; } = new(
+        () =>
+        {
+            var wsCtrl = InteractiveContext.Current?.WorkspaceController;
+            if (wsCtrl != null)
+            {
+                wsCtrl.StartTool(new MeasureDistanceTool());
+                Invalidate();
+            }
+        },
+        CanExecuteOnWorkspace)
+    {
+        Header = () => "Measure",
+        Title = () => "Measure Distance & Properties",
+        Description = () => "Measure the properties of a subshape (vertex coordinate, edge length, face area) or shortest distance between two selected elements.",
+        Icon = () => "Tool-MeasureDistance",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay, 
+                                                EqualityToBoolConverter.Instance, nameof(MeasureDistanceTool))
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand MeasureAngle { get; } = new(
+        () =>
+        {
+            var wsCtrl = InteractiveContext.Current?.WorkspaceController;
+            if (wsCtrl != null)
+            {
+                wsCtrl.StartTool(new MeasureAngleTool());
+                Invalidate();
+            }
+        },
+        CanExecuteOnWorkspace)
+    {
+        Header = () => "Angle",
+        Title = () => "Measure Angle",
+        Description = () => "Measure the angle between two planar faces or linear edges.",
+        Icon = () => "Tool-MeasureAngle",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay, 
+                                                EqualityToBoolConverter.Instance, nameof(MeasureAngleTool))
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand MeasureMassProperties { get; } = new(
+        () =>
+        {
+            var wsCtrl = InteractiveContext.Current?.WorkspaceController;
+            if (wsCtrl != null)
+            {
+                wsCtrl.StartTool(new MeasureMassPropertiesTool());
+                Invalidate();
+            }
+        },
+        CanExecuteOnWorkspace)
+    {
+        Header = () => "Mass Props",
+        Title = () => "Calculate Mass Properties",
+        Description = () => "Calculate the mass properties (surface area, volume, mass, center of gravity, moments of inertia) of a selected solid body.",
+        Icon = () => "Tool-MeasureMassProperties",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay, 
+                                                EqualityToBoolConverter.Instance, nameof(MeasureMassPropertiesTool))
     };
 
     //--------------------------------------------------------------------------------------------------

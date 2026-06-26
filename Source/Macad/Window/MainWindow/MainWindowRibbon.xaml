@@ -662,6 +662,96 @@
                 </Fluent:SplitButton>
             </Fluent:RibbonGroupBox>
 
+            <Fluent:RibbonGroupBox Header="General Tools">
+                <Fluent:DropDownButton Header="Tools"
+                                       Icon="{mmp:IconResource Tool-Tools}"
+                                       LargeIcon="{mmp:IconResource Tool-Tools}"
+                                       AutomationProperties.AutomationId="GeneralToolsDropDown">
+                    
+                    <Fluent:GroupSeparatorMenuItem Header="General &amp; Addons" />
+                    <Fluent:MenuItem Header="Units"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.ShowUnitsConverter}"
+                                     Icon="{mmp:IconResource Tool-UnitsConverter}"
+                                     AutomationProperties.AutomationId="ShowUnitsConverter"/>
+                    <Fluent:MenuItem Header="Addon Manager"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.ShowAddonManager}"
+                                     Icon="{mmp:IconResource App-RestoreLayout}"
+                                     AutomationProperties.AutomationId="ShowAddonManager"/>
+
+                    <Fluent:GroupSeparatorMenuItem Header="Measurement &amp; Math" />
+                    <Fluent:MenuItem Header="Measure"
+                                     mmp:Command.Action="{x:Static mmi:ToolboxCommands.MeasureDistance}"
+                                     Icon="{mmp:IconResource Tool-MeasureDistance}"
+                                     AutomationProperties.AutomationId="Measure"/>
+                    <Fluent:MenuItem Header="Mass Properties"
+                                     mmp:Command.Action="{x:Static mmi:ToolboxCommands.MeasureMassProperties}"
+                                     Icon="{mmp:IconResource Tool-MeasureMassProperties}"
+                                     AutomationProperties.AutomationId="MeasureMassProperties"/>
+
+                    <Fluent:GroupSeparatorMenuItem Header="Annotations &amp; Notes" />
+                    <Fluent:MenuItem Header="Annotation Label"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.ShowAnnotations}"
+                                     Icon="{mmp:IconResource Tool-Text}"
+                                     AutomationProperties.AutomationId="ShowAnnotations"/>
+                    <Fluent:MenuItem Header="Text Document"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.ShowTextDocument}"
+                                     Icon="{mmp:IconResource Tool-Text}"
+                                     AutomationProperties.AutomationId="ShowTextDocument"/>
+
+                    <Fluent:GroupSeparatorMenuItem Header="Images" />
+                    <Fluent:MenuItem Header="Load Image..."
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.LoadImage}"
+                                     Icon="{mmp:IconResource Auxiliary-DatumPlane}"
+                                     AutomationProperties.AutomationId="LoadImage"/>
+                    <Fluent:MenuItem Header="Save Image"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.SaveImage}"
+                                     Icon="{mmp:IconResource App-SaveWorkspace}"
+                                     AutomationProperties.AutomationId="SaveImage"/>
+
+                    <Fluent:GroupSeparatorMenuItem Header="Scene &amp; Geometry Analysis" />
+                    <Fluent:MenuItem Header="Clarify Selection"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.ShowSelectionClarifier}"
+                                     Icon="{mmp:IconResource View-SelectionMode}"
+                                     AutomationProperties.AutomationId="ShowSelectionClarifier"/>
+                    <Fluent:MenuItem Header="Scene Inspector"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.ShowSceneInspector}"
+                                     Icon="{mmp:IconResource Tool-ShapeInspect}"
+                                     AutomationProperties.AutomationId="ShowSceneInspector"/>
+                    <Fluent:MenuItem Header="Dependency Graph"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.ShowDependencyGraph}"
+                                     Icon="{mmp:IconResource App-RestoreLayout}"
+                                     AutomationProperties.AutomationId="ShowDependencyGraph"/>
+                    <Fluent:MenuItem Header="Export Dependency Graph"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.ExportDependencyGraph}"
+                                     Icon="{mmp:IconResource App-Export}"
+                                     AutomationProperties.AutomationId="ExportDependencyGraph"/>
+
+                    <Fluent:GroupSeparatorMenuItem Header="Utilities &amp; View" />
+                    <Fluent:MenuItem Header="Document Utility"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.ShowDocumentUtility}"
+                                     Icon="{mmp:IconResource App-RestoreLayout}"
+                                     AutomationProperties.AutomationId="ShowDocumentUtility"/>
+                    <Fluent:MenuItem Header="Edit Parameters"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.ShowEditParameters}"
+                                     Icon="{mmp:IconResource Tool-Align}"
+                                     AutomationProperties.AutomationId="ShowEditParameters"/>
+                    <Fluent:MenuItem Header="View Turntable"
+                                     mmp:Command.Action="{x:Static mmw:AppCommands.ToggleTurntable}"
+                                     Icon="{mmp:IconResource View-Rotate}"
+                                     AutomationProperties.AutomationId="ToggleTurntable"/>
+                </Fluent:DropDownButton>
+            </Fluent:RibbonGroupBox>
+
+            <Fluent:RibbonGroupBox Header="Measurement &amp; Analysis"
+                                   Name="MeasurementAnalysis">
+                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ToolboxCommands.MeasureDistance}"
+                                     AutomationProperties.AutomationId="MeasureDistance"/>
+                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ToolboxCommands.MeasureAngle}"
+                                     AutomationProperties.AutomationId="MeasureAngle"/>
+                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ToolboxCommands.MeasureMassProperties}"
+                                     AutomationProperties.AutomationId="MeasureMassProperties"/>
+            </Fluent:RibbonGroupBox>
+
         </Fluent:RibbonTabItem>
         <!--endregion-->
 
@@ -722,6 +812,13 @@
 
                 </Fluent:DropDownButton>
 
+            </Fluent:RibbonGroupBox>
+
+            <Fluent:RibbonGroupBox Header="Appearance">
+                <Fluent:Button mmp:Command.Action="{x:Static mmw:AppCommands.ShowAppearance}"
+                               AutomationProperties.AutomationId="ShowAppearance" />
+                <Fluent:Button mmp:Command.Action="{x:Static mmw:AppCommands.StartAppearancePerFace}"
+                               AutomationProperties.AutomationId="StartAppearancePerFace" />
             </Fluent:RibbonGroupBox>
 
             <Fluent:RibbonGroupBox Header="Layout">
@@ -893,6 +990,9 @@
 
                 <Fluent:Button mmp:Command.Action="{x:Static mmi:SketchCommands.WeldElements}"
                                AutomationProperties.AutomationId="WeldElements"/>
+
+                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:SketchCommands.ToggleAuxiliaryFlag}"
+                                     AutomationProperties.AutomationId="ToggleConstruction"/>
 
                 <Fluent:DropDownButton Header="Convert Segment"
                                        Icon="{mmp:IconResource Sketch-ConvertSegment}"

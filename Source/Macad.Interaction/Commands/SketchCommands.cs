@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Data;
@@ -768,36 +768,42 @@ public static class SketchCommands
     //--------------------------------------------------------------------------------------------------
 
     public static ActionCommand ToggleAuxiliaryFlag { get; } = new(
-        () =>
-        {
-            var sketchEditTool = InteractiveContext.Current?.WorkspaceController?.CurrentTool as SketchEditorTool;
-            if (sketchEditTool == null || sketchEditTool.SelectedSegments.Count < 0)
-                return;
+       () =>
+       {
+           var sketchEditTool = InteractiveContext.Current?.WorkspaceController?.CurrentTool as SketchEditorTool;
+           if (sketchEditTool == null)
+               return;
 
-            var sketch = sketchEditTool.Sketch;
-            bool newState = !sketchEditTool.SelectedSegments[0].IsAuxilliary;
-            sketch.SaveUndo(Sketch.ElementType.Segment);
-            sketchEditTool.SelectedSegments.ForEach(seg =>
-            {
-                seg.IsAuxilliary = newState;
-            });
-            sketch.OnElementsChanged(Sketch.ElementType.Segment);
-            sketch.Invalidate();
-            InteractiveContext.Current?.UndoHandler?.Commit();
-        },
-        () =>
-        {
-            var sketchEditTool = InteractiveContext.Current?.WorkspaceController?.CurrentTool as SketchEditorTool;
-            if (sketchEditTool == null)
-                return false;
-
-            return sketchEditTool.SelectedSegments.Count > 0;
-        }
+           if (sketchEditTool.SelectedSegments?.Count > 0)
+           {
+               var sketch = sketchEditTool.Sketch;
+               bool newState = !sketchEditTool.SelectedSegments[0].IsAuxilliary;
+               sketch.SaveUndo(Sketch.ElementType.Segment);
+               sketchEditTool.SelectedSegments.ForEach(seg =>
+               {
+                   seg.IsAuxilliary = newState;
+               });
+               sketch.OnElementsChanged(Sketch.ElementType.Segment);
+               sketch.Invalidate();
+               InteractiveContext.Current?.UndoHandler?.Commit();
+           }
+           else
+           {
+               sketchEditTool.UseAuxiliaryMode = !sketchEditTool.UseAuxiliaryMode;
+           }
+       },
+       () =>
+       {
+           var sketchEditTool = InteractiveContext.Current?.WorkspaceController?.CurrentTool as SketchEditorTool;
+           return sketchEditTool != null;
+       }
     )
     {
-        Header = () => "Toggle Auxiliary",
-        Description = () => "Toggles the auxiliary flag on the selected segments."
+        Header = () => "Toggle Construction",
+        Description = () => "Toggles the construction/auxiliary flag on the selected segments, or toggles construction mode for new segments if nothing is selected.",
+        Icon = () => "Sketch-ToggleConstruction",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.SketchConstructionModeActive)}", BindingMode.OneWay),
     };
 
-    //--------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------
 }
