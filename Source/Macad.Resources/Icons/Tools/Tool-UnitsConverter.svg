@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="64"
+   height="64"
+   viewBox="0 0 16.933333 16.933333"
+   version="1.1"
+   id="svg8"
+   xmlns="http://www.w3.org/2000/svg">
+  <g id="layer1">
+    <!-- Top Arrow (Rightward conversion) -->
+    <path d="M 2.5,5.5 H 12.0" fill="none" stroke="#333333" stroke-width="0.9" stroke-linecap="round" />
+    <path d="M 11.5,4.0 L 13.5,5.5 L 11.5,7.0 Z" fill="#007acc" stroke="#007acc" stroke-width="0.2" stroke-linejoin="round" />
+
+    <!-- Bottom Arrow (Leftward conversion) -->
+    <path d="M 14.433333,11.5 H 4.933333" fill="none" stroke="#333333" stroke-width="0.9" stroke-linecap="round" />
+    <path d="M 5.433333,10.0 L 3.433333,11.5 L 5.433333,13.0 Z" fill="#007acc" stroke="#007acc" stroke-width="0.2" stroke-linejoin="round" />
+
+    <!-- Scale ticks/conversion divider -->
+    <path d="M 8.466666,3.0 V 14.0" fill="none" stroke="#808080" stroke-width="0.5" stroke-dasharray="1,1" />
+  </g>
+</svg>

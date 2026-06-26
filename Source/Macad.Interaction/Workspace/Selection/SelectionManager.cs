@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -288,6 +288,7 @@ public sealed class SelectionManager : IDisposable
     readonly List<SelectionContext> _SelectionContexts = new List<SelectionContext>();
 
     public SelectionContext CurrentContext {  get { return _SelectionContexts.LastOrDefault(); } }
+    public SelectionContext ActiveContext {  get { return _SelectionContexts.LastOrDefault() ?? _BaseContext; } }
 
     bool _ContextUpdatePending = false;
 

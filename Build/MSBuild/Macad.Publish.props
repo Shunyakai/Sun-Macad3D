@@ -10,7 +10,7 @@
     <PublishSingleFile>False</PublishSingleFile>
     <PublishReadyToRun>True</PublishReadyToRun>
     <IsPublishable>True</IsPublishable>
-    <AppHostDotNetSearch>AppRelative</AppHostDotNetSearch>
+    <AppHostDotNetSearch>AppRelative;Global</AppHostDotNetSearch>
     <AppHostRelativeDotNet>DotNetRuntime</AppHostRelativeDotNet>
   </PropertyGroup>
 </Project>

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -60,10 +60,10 @@ public sealed class SketchEditorTool : Tool
 
     //--------------------------------------------------------------------------------------------------
 
-    public List<int> SelectedSegmentIndices { get; private set; }
+    public List<int> SelectedSegmentIndices { get; private set; } = new();
     public List<SketchSegment> SelectedSegments
     {
-        get { return _SelectedSegments; }
+        get { return _SelectedSegments ??= new List<SketchSegment>(); }
         private set
         {
             _SelectedSegments = value;
@@ -75,7 +75,7 @@ public sealed class SketchEditorTool : Tool
 
     public List<SketchConstraint> SelectedConstraints
     {
-        get { return _SelectedConstraints; }
+        get { return _SelectedConstraints ??= new List<SketchConstraint>(); }
         private set
         {
             _SelectedConstraints = value;
@@ -87,7 +87,7 @@ public sealed class SketchEditorTool : Tool
 
     public List<int> SelectedPoints
     {
-        get { return _SelectedPoints; }
+        get { return _SelectedPoints ??= new List<int>(); }
         private set
         {
             _SelectedPoints = value;
@@ -100,6 +100,21 @@ public sealed class SketchEditorTool : Tool
     public bool ClipPlaneEnabled
     {
         get { return _ClipPlane != null; }
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    public bool UseAuxiliaryMode
+    {
+        get { return _UseAuxiliaryMode; }
+        set
+        {
+            if (_UseAuxiliaryMode != value)
+            {
+                _UseAuxiliaryMode = value;
+                RaisePropertyChanged();
+            }
+        }
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -117,6 +132,7 @@ public sealed class SketchEditorTool : Tool
     double _LastPixelSize;
     double[] _SavedViewParameters;
     ClipPlane _ClipPlane;
+    bool _UseAuxiliaryMode;
 
     SelectSketchElementAction _SelectAction;
     MoveSketchPointAction _MoveAction;
@@ -411,6 +427,7 @@ public sealed class SketchEditorTool : Tool
 
         itemList.AddCommand(SketchCommands.SplitElement);
         itemList.AddCommand(SketchCommands.WeldElements);
+        itemList.AddCommand(SketchCommands.ToggleAuxiliaryFlag);
 
         itemList.AddGroup("Convert Segment");
         itemList.AddCommandIfExecutable(SketchCommands.ConvertSegment, SketchCommands.Segments.Line);
@@ -690,6 +707,13 @@ public sealed class SketchEditorTool : Tool
 
     public void FinishSegmentCreation(Dictionary<int, Pnt2d> points, int[] mergePointIndices, IEnumerable<SketchSegment> segments, IEnumerable<SketchConstraint> constraints, int continueWithPoint = -1)
     {
+        if (UseAuxiliaryMode)
+        {
+            foreach (var seg in segments)
+            {
+                seg.IsAuxilliary = true;
+            }
+        }
         var (pointMap, segmentMap, _) = Sketch.AddElements(points, mergePointIndices, segments.ToIndexedDictionary(), constraints);
         CommitChanges();
         WorkspaceController.UpdateSelection();

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ProjectGuid>{6CD3EADE-505E-4F55-A720-4A5E7D88F943}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -7,6 +7,7 @@
     <Platforms>x64</Platforms>
     <StartupObject>Macad.Window.Program</StartupObject>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
   
   <Import Project="$(MMBuildPropsDir)\Macad.Publish.props" />

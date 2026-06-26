@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -34,12 +34,12 @@ public sealed class UndoHandler : BaseObject
         get { return _RedoStack.Count > 0; }
     }
 
-    internal LimitedStack<UndoAction[]> UndoStack
+    public LimitedStack<UndoAction[]> UndoStack
     {
         get { return _UndoStack; }
     }
 
-    internal LimitedStack<UndoAction[]> RedoStack
+    public LimitedStack<UndoAction[]> RedoStack
     {
         get { return _RedoStack; }
     }

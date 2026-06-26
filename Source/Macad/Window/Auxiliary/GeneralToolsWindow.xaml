@@ -1,0 +1,255 @@
+<mmp:Dialog x:Class="Macad.Window.GeneralToolsWindow"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+            xmlns:mmp="clr-namespace:Macad.Presentation;assembly=Macad.Presentation"
+            mc:Ignorable="d" 
+            Style="{StaticResource {x:Type mmp:Dialog}}"
+            DataContext="{Binding RelativeSource={RelativeSource Self}}"        
+            Title="General Tools Dashboard"
+            Height="560" Width="840"
+            WindowStartupLocation="CenterOwner"
+            AutomationProperties.AutomationId="GeneralToolsWindow">
+
+    <mmp:Dialog.Footer>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Close" IsCancel="True" Click="CloseBtn_Click"
+                    Style="{StaticResource Macad.Styles.Button.DialogFooter}"
+                    Width="90"
+                    AutomationProperties.AutomationId="CloseBtn"/>
+        </StackPanel>
+    </mmp:Dialog.Footer>
+
+    <Grid>
+        <TabControl x:Name="ToolsTabControl" TabStripPlacement="Left" Background="#1e1e1e" BorderThickness="0" Margin="5">
+            <TabControl.Resources>
+                <Style TargetType="{x:Type TabItem}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type TabItem}">
+                                <Border x:Name="Border"
+                                        Background="#2a2a2a"
+                                        BorderBrush="#3a3a3a"
+                                        BorderThickness="0,0,1,0"
+                                        Padding="12,8"
+                                        SnapsToDevicePixels="True">
+                                    <ContentPresenter x:Name="ContentSite"
+                                                      ContentSource="Header"
+                                                      HorizontalAlignment="Left"
+                                                      VerticalAlignment="Center"
+                                                      RecognizesAccessKey="True"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Border" Property="Background" Value="#3d3d3d" />
+                                        <Setter TargetName="Border" Property="BorderBrush" Value="#007acc" />
+                                        <Setter TargetName="Border" Property="BorderThickness" Value="4,0,0,0" />
+                                        <Setter Property="Foreground" Value="White" />
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Border" Property="Background" Value="#333333" />
+                                        <Setter Property="Foreground" Value="White" />
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Foreground" Value="#555555" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="Foreground" Value="#bbbbbb" />
+                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="Width" Value="150" />
+                    <Setter Property="Height" Value="35" />
+                    <Setter Property="Margin" Value="0,0,0,2" />
+                </Style>
+            </TabControl.Resources>
+            
+            <!-- Tab 1: Addons (Addon Manager) -->
+            <TabItem Header="Addon Manager">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Addon Manager" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Macad.Brushes.Text}" Margin="0,0,0,15"/>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="AddonsListPanel"/>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 2: Annotations (Annotation Label) -->
+            <TabItem Header="Annotation Label">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Document Annotations" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Macad.Brushes.Text}" Margin="0,0,0,15"/>
+                    
+                    <Grid Grid.Row="1" Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <ListBox x:Name="AnnotationsList" SelectionChanged="AnnotationsList_SelectionChanged" Background="#2d2d2d" Margin="0,0,10,0" DisplayMemberPath="Key" Foreground="{StaticResource Macad.Brushes.Text}"/>
+                        
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Label Content="Title:" Foreground="{StaticResource Macad.Brushes.Text}"/>
+                            <TextBox Grid.Row="1" x:Name="AnnotationTitleText" Height="25" Margin="0,0,0,10" Background="#2d2d2d" Foreground="{StaticResource Macad.Brushes.Text}" BorderBrush="#555"/>
+                            <TextBox Grid.Row="2" x:Name="AnnotationContentText" TextWrapping="Wrap" AcceptsReturn="True" Background="#2d2d2d" Foreground="{StaticResource Macad.Brushes.Text}" BorderBrush="#555" Padding="5"/>
+                        </Grid>
+                    </Grid>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="New" Click="NewAnnotation_Click" Style="{StaticResource Macad.Styles.Button.DialogFooter}" Width="70" Margin="0,0,10,0"/>
+                        <Button Content="Save" Click="SaveAnnotation_Click" Style="{StaticResource Macad.Styles.Button.DialogFooter}" Width="70" Margin="0,0,10,0"/>
+                        <Button Content="Delete" Click="DeleteAnnotation_Click" Style="{StaticResource Macad.Styles.Button.DialogFooter}" Width="70"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 3: Clarify Selection -->
+            <TabItem Header="Clarify Selection">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Clarify &amp; Filter Selection" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Macad.Brushes.Text}" Margin="0,0,0,15"/>
+                    
+                    <StackPanel Grid.Row="1" Margin="0,0,0,15">
+                        <TextBlock Text="Quick Selection Filters:" Foreground="{StaticResource Macad.Brushes.Text}" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" x:Name="FilterSolidsChk" Content="Solids / Bodies" IsChecked="True" Checked="Filter_Changed" Unchecked="Filter_Changed" Foreground="{StaticResource Macad.Brushes.Text}"/>
+                            <CheckBox Grid.Column="1" x:Name="FilterFacesChk" Content="Faces" IsChecked="True" Checked="Filter_Changed" Unchecked="Filter_Changed" Foreground="{StaticResource Macad.Brushes.Text}"/>
+                            <CheckBox Grid.Column="2" x:Name="FilterEdgesChk" Content="Edges" IsChecked="True" Checked="Filter_Changed" Unchecked="Filter_Changed" Foreground="{StaticResource Macad.Brushes.Text}"/>
+                            <CheckBox Grid.Column="3" x:Name="FilterVerticesChk" Content="Vertices" IsChecked="True" Checked="Filter_Changed" Unchecked="Filter_Changed" Foreground="{StaticResource Macad.Brushes.Text}"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <Grid Grid.Row="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Currently Selected Entities:" Foreground="{StaticResource Macad.Brushes.Text}" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <ListBox Grid.Row="1" x:Name="SelectedEntitiesList" Background="#2d2d2d" Foreground="{StaticResource Macad.Brushes.Text}" SelectionChanged="SelectedEntitiesList_SelectionChanged"/>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 4: Text Document (Notes) -->
+            <TabItem Header="Text Document">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Project Design Notes" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Macad.Brushes.Text}" Margin="0,0,0,15"/>
+                    <TextBox Grid.Row="1" x:Name="ProjectNotesBox" TextWrapping="Wrap" AcceptsReturn="True" Background="#2d2d2d" Foreground="{StaticResource Macad.Brushes.Text}" BorderBrush="#555" Padding="10"/>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                        <Button Content="Load Notes..." Click="LoadNotes_Click" Style="{StaticResource Macad.Styles.Button.DialogFooter}" Width="100" Margin="0,0,10,0"/>
+                        <Button Content="Save Notes..." Click="SaveNotes_Click" Style="{StaticResource Macad.Styles.Button.DialogFooter}" Width="100" Margin="0,0,10,0"/>
+                        <Button Content="Clear" Click="ClearNotes_Click" Style="{StaticResource Macad.Styles.Button.DialogFooter}" Width="80"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 5: Scene Inspector -->
+            <TabItem Header="Scene Inspector">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Scene Tree Inspector" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Macad.Brushes.Text}" Margin="0,0,0,15"/>
+                    <TreeView Grid.Row="1" x:Name="SceneTreeView" Background="#2d2d2d" Foreground="{StaticResource Macad.Brushes.Text}" BorderBrush="#555">
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                <StackPanel Orientation="Horizontal" Margin="2">
+                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="{StaticResource Macad.Brushes.Text}"/>
+                                    <TextBlock Text="{Binding Details}" Foreground="#aaa" Margin="10,0,0,0"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 6: Dependency Graph -->
+            <TabItem Header="Dependency Graph">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Shape Dependency Tree" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Macad.Brushes.Text}" Margin="0,0,0,15"/>
+                    <ListBox Grid.Row="1" x:Name="DependencyGraphList" Background="#2d2d2d" Foreground="{StaticResource Macad.Brushes.Text}"/>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                        <Button Content="Export Graph (DOT)..." Click="ExportGraph_Click" Style="{StaticResource Macad.Styles.Button.DialogFooter}" Width="150"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 7: Document Utility -->
+            <TabItem Header="Document Utility">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Document Utility &amp; Info" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Macad.Brushes.Text}" Margin="0,0,0,15"/>
+                    
+                    <StackPanel Grid.Row="1">
+                        <TextBlock x:Name="DocStatsBlock" LineHeight="20" Foreground="{StaticResource Macad.Brushes.Text}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Run Garbage Collection" Click="PurgeDoc_Click" Style="{StaticResource Macad.Styles.Button.DialogFooter}" Width="160"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 8: Edit Parameters -->
+            <TabItem Header="Edit Parameters">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock x:Name="ParamHeaderLabel" Text="Parametric Dimension Editor" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Macad.Brushes.Text}" Margin="0,0,0,15"/>
+                    
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="ParametersEditorPanel"/>
+                    </ScrollViewer>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                        <Button Content="Apply Changes" Click="ApplyParams_Click" Style="{StaticResource Macad.Styles.Button.DialogFooter}" Width="120"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+</mmp:Dialog>

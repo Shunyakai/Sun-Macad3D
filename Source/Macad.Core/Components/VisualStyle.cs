@@ -1,7 +1,9 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
+using System.Collections.Generic;
 using Macad.Core.Topology;
 using Macad.Common;
 using Macad.Common.Serialization;
+using Macad.Occt;
 
 namespace Macad.Core.Components;
 
@@ -19,7 +21,7 @@ public class VisualStyle : Component
             {
                 SaveUndo();
                 _Color = value;
-//                    InvalidateVisual();
+                _RaiseVisualStyleChanged();
                 RaisePropertyChanged();
             }
         }
@@ -37,9 +39,42 @@ public class VisualStyle : Component
             {
                 SaveUndo();
                 _Transparency = value;
-                //InvalidateVisual();
+                _RaiseVisualStyleChanged();
                 RaisePropertyChanged();
             }
+        }
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    [SerializeMember]
+    public Graphic3d_NameOfMaterial Material
+    {
+        get { return _Material; }
+        set
+        {
+            if (_Material != value)
+            {
+                SaveUndo();
+                _Material = value;
+                _RaiseVisualStyleChanged();
+                RaisePropertyChanged();
+            }
+        }
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    [SerializeMember]
+    public List<FaceAppearance> FaceAppearances
+    {
+        get { return _FaceAppearances; }
+        set
+        {
+            SaveUndo();
+            _FaceAppearances = value;
+            _RaiseVisualStyleChanged();
+            RaisePropertyChanged();
         }
     }
 
@@ -80,6 +115,8 @@ public class VisualStyle : Component
 
     Color _Color;
     float _Transparency;
+    Graphic3d_NameOfMaterial _Material;
+    List<FaceAppearance> _FaceAppearances;
 
     //--------------------------------------------------------------------------------------------------
 
@@ -89,6 +126,8 @@ public class VisualStyle : Component
     {
         _Color = Colors.Default;
         _Transparency = 0;
+        _Material = Graphic3d_NameOfMaterial.DEFAULT;
+        _FaceAppearances = new List<FaceAppearance>();
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -138,4 +177,35 @@ public class VisualStyle : Component
 
     #endregion
 
+}
+
+[SerializeType]
+public class FaceAppearance
+{
+    [SerializeMember]
+    public int FaceIndex { get; set; }
+
+    [SerializeMember]
+    public Color Color { get; set; }
+
+    [SerializeMember]
+    public float Transparency { get; set; }
+
+    [SerializeMember]
+    public Graphic3d_NameOfMaterial Material { get; set; }
+
+    public FaceAppearance()
+    {
+        Color = Colors.Default;
+        Transparency = 0.0f;
+        Material = Graphic3d_NameOfMaterial.DEFAULT;
+    }
+
+    public FaceAppearance(int faceIndex, Color color, float transparency, Graphic3d_NameOfMaterial material)
+    {
+        FaceIndex = faceIndex;
+        Color = color;
+        Transparency = transparency;
+        Material = material;
+    }
 }
