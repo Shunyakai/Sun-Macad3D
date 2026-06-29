@@ -5,6 +5,7 @@ on: [pull_request, push]
 permissions:
   checks: write
   pull-requests: write
+  contents: read
 
 jobs:
   build:
