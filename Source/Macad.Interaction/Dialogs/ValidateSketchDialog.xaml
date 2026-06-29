@@ -1,0 +1,78 @@
+<mmp:Dialog x:Class="Macad.Interaction.Dialogs.ValidateSketchDialog"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+            xmlns:mmp="clr-namespace:Macad.Presentation;assembly=Macad.Presentation"
+            xmlns:local="clr-namespace:Macad.Interaction.Dialogs"
+            mc:Ignorable="d" 
+            Title="Validate Sketch"
+            ResizeMode="NoResize" 
+            ShowInTaskbar="False" 
+            Width="550" Height="450"
+            Padding="10"
+            SizeToContent="Manual"
+            Style="{StaticResource {x:Type mmp:Dialog}}"
+            DataContext="{Binding RelativeSource={RelativeSource Self}}">
+
+    <mmp:Dialog.Footer>
+        <DockPanel>
+            <Button DockPanel.Dock="Right"
+                    Content="Close" 
+                    IsCancel="True"
+                    Click="OnCloseClick"
+                    Style="{StaticResource Macad.Styles.Button.DialogFooter}" />
+            <Button DockPanel.Dock="Right"
+                    Content="Fix All" 
+                    Click="OnFixAllClick"
+                    Style="{StaticResource Macad.Styles.Button.DialogFooter}" />
+            <Button DockPanel.Dock="Right"
+                    Content="Fix Selected" 
+                    Click="OnFixSelectedClick"
+                    Style="{StaticResource Macad.Styles.Button.DialogFooter}" />
+        </DockPanel>
+    </mmp:Dialog.Footer>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Tolerance input and Detect button -->
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Tolerance (mm):" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{StaticResource Macad.Brushes.Text}"/>
+            <mmp:ValueEditBox Grid.Column="1" Value="{Binding Tolerance}" VerticalAlignment="Center" />
+            <Button Grid.Column="3" Content="Detect" Width="100" Height="25" Click="OnDetectClick" Style="{StaticResource {x:Type Button}}" />
+        </Grid>
+
+        <!-- ListView of validation issues -->
+        <ListView Grid.Row="1" x:Name="issuesListView"
+                  ItemsSource="{Binding Issues}"
+                  Background="Transparent"
+                  BorderThickness="1"
+                  BorderBrush="Gray"
+                  SelectionMode="Extended"
+                  SelectionChanged="OnSelectionChanged">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Type" DisplayMemberBinding="{Binding ErrorType}" Width="120" />
+                    <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="380" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <!-- Summary text -->
+        <TextBlock Grid.Row="2" Margin="0,10,0,0" 
+                   Text="{Binding Issues.Count, StringFormat='Found {0} issues.'}" 
+                   Foreground="{StaticResource Macad.Brushes.Text}" 
+                   FontWeight="SemiBold"/>
+    </Grid>
+</mmp:Dialog>

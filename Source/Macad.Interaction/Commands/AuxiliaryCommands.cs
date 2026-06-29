@@ -48,6 +48,11 @@ public static class AuxiliaryCommands
     };
 
     //--------------------------------------------------------------------------------------------------
+
+    #endregion
+
+    //--------------------------------------------------------------------------------------------------
+
     public static ActionCommand CreateDatumLine { get; } = new(
         () =>
         {
@@ -68,6 +73,68 @@ public static class AuxiliaryCommands
     };
 
     //--------------------------------------------------------------------------------------------------
+    #region Annotation Label
+
+    public static ActionCommand CreateAnnotationLabel { get; } = new(
+        () =>
+        {
+            StartTool(new Tools.AnnotationLabelTool());
+        },
+        CanStartTool)
+    {
+        Header = () => "Annotation",
+        Description = () => "Creates an annotation label pointing to an object or point.",
+        Icon = () => "Tool-EdgesSelection",
+    };
+
+    #endregion
+
+    //--------------------------------------------------------------------------------------------------
+
+    #region Macros
+
+    public static ActionCommand ToggleRecordMacro { get; } = new(
+        () =>
+        {
+            if (Macros.MacroManager.Instance.IsRecording)
+            {
+                Macros.MacroManager.Instance.StopRecording();
+                Messages.Info("Macro recording stopped.");
+            }
+            else
+            {
+                if (Macros.MacroManager.Instance.StartRecording())
+                {
+                    Messages.Info($"Macro recording started: {Macros.MacroManager.Instance.CurrentMacroPath}");
+                }
+            }
+        },
+        () => true)
+    {
+        Header = () => Macros.MacroManager.Instance.IsRecording ? "Stop Recording" : "Record Macro",
+        Description = () => "Starts or stops recording actions to a macro file.",
+        Icon = () => "Macro-Record"
+    };
+
+    public static ActionCommand RunMacro { get; } = new(
+        () =>
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Macro files (*.csx)|*.csx|All files (*.*)|*.*",
+                InitialDirectory = Macros.MacroManager.GetMacrosDirectory()
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                Macros.MacroManager.Instance.RunMacro(dlg.FileName);
+            }
+        },
+        () => !Macros.MacroManager.Instance.IsRecording)
+    {
+        Header = () => "Run Macro",
+        Description = () => "Executes a macro script from a file.",
+        Icon = () => "Macro-Run"
+    };
 
     #endregion
 }

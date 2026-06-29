@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows.Input;
 
@@ -78,7 +78,9 @@ public class RelayCommand<T> : ICommand
     /// <param name="parameter">Data used by the command.  If the command does not require data to be passed, this object can be set to null.</param>
     public void Execute(object parameter)
     {
-        _execute(ConvertParameter(parameter));
+        var typedParam = ConvertParameter(parameter);
+        _execute(typedParam);
+        CommandEventHub.FireCommandExecuted(this, typedParam);
     }
     /// <summary>
     /// Defines the method to be called when the command is invoked.
@@ -87,6 +89,7 @@ public class RelayCommand<T> : ICommand
     public void Execute(T parameter)
     {
         _execute(parameter);
+        CommandEventHub.FireCommandExecuted(this, parameter);
     }
 
     protected T ConvertParameter(object parameter)

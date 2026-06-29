@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Macad.Core.Shapes;
 using Macad.Occt;
@@ -357,7 +357,6 @@ public sealed class SketchEditorElements
                     element.Activate(true);
                     _SegmentElements.Add(element);
                 }
-                _SegmentElements.ForEach(sc => sc.UpdateVisual());
             }
             if (types.HasFlag(Sketch.ElementType.Constraint))
             {

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -84,6 +84,8 @@ public class MouseEventData
 
     public ReturnOptions Return { get; } = new();
 
+    public bool IsRectangleSelection { get; set; }
+
     //--------------------------------------------------------------------------------------------------
 
     public Ax1 PickAxis
@@ -118,6 +120,7 @@ public class MouseEventData
         PointOnPlane = default;
         DetectedElements.Clear();
         Return.Clear();
+        IsRectangleSelection = false;
     }
     
     //--------------------------------------------------------------------------------------------------

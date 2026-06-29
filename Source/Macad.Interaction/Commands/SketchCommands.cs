@@ -29,7 +29,8 @@ public static class SketchCommands
         Rectangle,
         Bezier,
         Bezier2,
-        Bezier3
+        Bezier3,
+        Pipe
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -426,6 +427,9 @@ public static class SketchCommands
                 case Segments.Bezier3:
                     _StartOrStopSegmentCreator<SketchSegmentBezier3Creator>(true);
                     break;
+                case Segments.Pipe:
+    _StartOrStopSegmentCreator<SketchSegmentPipeCreator>(false);
+    break;
             }
         },
         (creator) => InteractiveContext.Current?.WorkspaceController?.CurrentTool is SketchEditorTool
@@ -441,6 +445,7 @@ public static class SketchCommands
                 case Segments.ArcRim:              return "Arc using Rim";
                 case Segments.EllipseCenter:       return "Ellipse";
                 case Segments.EllipticalArcCenter: return "Elliptical Arc";
+                case Segments.Pipe:                return "Pipe Profile";
                 case Segments.Rectangle:           return "Rectangle";
                 case Segments.Bezier2:             return "Quadratic Bézier";
                 case Segments.Bezier3:             return "Cubic Bézier";
@@ -657,6 +662,33 @@ public static class SketchCommands
         
     //--------------------------------------------------------------------------------------------------
 
+    public static ActionCommand TrimElement { get; } = new(
+        () =>
+        {
+            var sketchEditTool = InteractiveContext.Current?.WorkspaceController?.CurrentTool as SketchEditorTool;
+            if (sketchEditTool == null)
+                return;
+
+            if (sketchEditTool.CurrentTool is TrimElementSketchTool)
+            {
+                sketchEditTool.StopTool();
+                return;
+            }
+
+            var tool = new TrimElementSketchTool();
+            sketchEditTool.StartTool(tool);
+        },
+        () => InteractiveContext.Current?.WorkspaceController?.CurrentTool is SketchEditorTool)
+    {
+        Header = () => "Trim",
+        Icon = () => "Sketch-SplitTool", // Reusing SplitTool icon as a clean fallback
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveSketchTool)}", BindingMode.OneWay,
+                                                EqualityToBoolConverter.Instance, nameof(TrimElementSketchTool)),
+        Description = () => "Trims selected segments at intersection points."
+    };
+        
+    //--------------------------------------------------------------------------------------------------
+
     static Type _GetConversionTargetType(Segments segments)
     {
         switch (segments)
@@ -768,42 +800,53 @@ public static class SketchCommands
     //--------------------------------------------------------------------------------------------------
 
     public static ActionCommand ToggleAuxiliaryFlag { get; } = new(
-       () =>
-       {
-           var sketchEditTool = InteractiveContext.Current?.WorkspaceController?.CurrentTool as SketchEditorTool;
-           if (sketchEditTool == null)
-               return;
+        () =>
+        {
+            var sketchEditTool = InteractiveContext.Current?.WorkspaceController?.CurrentTool as SketchEditorTool;
+            if (sketchEditTool == null || sketchEditTool.SelectedSegments.Count < 0)
+                return;
 
-           if (sketchEditTool.SelectedSegments?.Count > 0)
-           {
-               var sketch = sketchEditTool.Sketch;
-               bool newState = !sketchEditTool.SelectedSegments[0].IsAuxilliary;
-               sketch.SaveUndo(Sketch.ElementType.Segment);
-               sketchEditTool.SelectedSegments.ForEach(seg =>
-               {
-                   seg.IsAuxilliary = newState;
-               });
-               sketch.OnElementsChanged(Sketch.ElementType.Segment);
-               sketch.Invalidate();
-               InteractiveContext.Current?.UndoHandler?.Commit();
-           }
-           else
-           {
-               sketchEditTool.UseAuxiliaryMode = !sketchEditTool.UseAuxiliaryMode;
-           }
-       },
-       () =>
-       {
-           var sketchEditTool = InteractiveContext.Current?.WorkspaceController?.CurrentTool as SketchEditorTool;
-           return sketchEditTool != null;
-       }
+            var sketch = sketchEditTool.Sketch;
+            bool newState = !sketchEditTool.SelectedSegments[0].IsAuxilliary;
+            sketch.SaveUndo(Sketch.ElementType.Segment);
+            sketchEditTool.SelectedSegments.ForEach(seg =>
+            {
+                seg.IsAuxilliary = newState;
+            });
+            sketch.OnElementsChanged(Sketch.ElementType.Segment);
+            sketch.Invalidate();
+            InteractiveContext.Current?.UndoHandler?.Commit();
+        },
+        () =>
+        {
+            var sketchEditTool = InteractiveContext.Current?.WorkspaceController?.CurrentTool as SketchEditorTool;
+            if (sketchEditTool == null)
+                return false;
+
+            return sketchEditTool.SelectedSegments.Count > 0;
+        }
     )
     {
-        Header = () => "Toggle Construction",
-        Description = () => "Toggles the construction/auxiliary flag on the selected segments, or toggles construction mode for new segments if nothing is selected.",
-        Icon = () => "Sketch-ToggleConstruction",
-        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.SketchConstructionModeActive)}", BindingMode.OneWay),
+        Header = () => "Toggle Auxiliary",
+        Description = () => "Toggles the auxiliary flag on the selected segments."
+    };
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand ValidateSketch { get; } = new(
+        () =>
+        {
+            var sketchEditTool = InteractiveContext.Current?.WorkspaceController?.CurrentTool as SketchEditorTool;
+            if (sketchEditTool == null)
+                return;
+
+            ValidateSketchDialog.Execute(System.Windows.Application.Current?.MainWindow, sketchEditTool);
+        },
+        () => InteractiveContext.Current?.WorkspaceController?.CurrentTool is SketchEditorTool)
+    {
+        Header = () => "Validate Sketch",
+        Icon = () => "Sketch-ValidateTool",
+        Description = () => "Validate the sketch geometry, search for open vertices, overlapping edges, or degenerated elements, and automatically repair them."
     };
 
-    //-----------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------
 }

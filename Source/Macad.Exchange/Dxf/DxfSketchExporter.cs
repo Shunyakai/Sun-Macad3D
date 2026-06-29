@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using Macad.Core.Shapes;
 using Macad.Common;
@@ -44,6 +44,10 @@ internal sealed class DxfSketchExporter
                     _AddLineSegment(line);
                     break;
 
+                case SketchSegmentPipe pipe:
+                    _AddLineSegment(pipe);
+                    break;
+
                 case SketchSegmentCircle circle:
                     _AddCircleSegment(circle);
                     break;
@@ -77,6 +81,17 @@ internal sealed class DxfSketchExporter
     {
         var p1 = _Sketch.Points[lineSegment.StartPoint];
         var p2 = _Sketch.Points[lineSegment.EndPoint];
+
+        var entity = new DxfDomLine("0", p1, p2);
+        _Document.Entities.Add(entity);
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    void _AddLineSegment(SketchSegmentPipe pipeSegment)
+    {
+        var p1 = _Sketch.Points[pipeSegment.StartPoint];
+        var p2 = _Sketch.Points[pipeSegment.EndPoint];
 
         var entity = new DxfDomLine("0", p1, p2);
         _Document.Entities.Add(entity);

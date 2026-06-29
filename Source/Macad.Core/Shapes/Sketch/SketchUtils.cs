@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Macad.Common;
@@ -94,6 +94,7 @@ public static class SketchUtils
             case SketchSegmentEllipse:
             case SketchSegmentEllipticalArc:
             case SketchSegmentBezier:
+            case SketchSegmentPipe:
                 return true;
         }
 
@@ -121,6 +122,8 @@ public static class SketchUtils
                 return SplitSegment(sketch, ellipticalArc, u);
             case SketchSegmentBezier bezier:
                 return SplitSegment(sketch, bezier, u);
+            case SketchSegmentPipe pipe:
+                return SplitSegment(sketch, pipe, u);
         }
 
         return SplitSegmentFailed; // Segment not splittable
@@ -145,6 +148,29 @@ public static class SketchUtils
         int seg2Index = sketch.AddSegment(newLine2);
 
         sketch.DeleteSegment(line);
+
+        return (splitPointIndex, new[] {seg1Index, seg2Index});
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static (int splitPoint, int[] newSegments) SplitSegment(Sketch sketch, SketchSegmentPipe pipe, double u)
+    {
+        var curve = pipe.MakeCurve(sketch.Points);
+        if (curve == null
+            || u <= curve.FirstParameter()
+            || u >= curve.LastParameter())
+            return SplitSegmentFailed;
+
+        int splitPointIndex = sketch.AddPoint(curve.Value(u));
+
+        var newPipe1 = new SketchSegmentPipe(pipe.StartPoint, splitPointIndex, pipe.Radius);
+        int seg1Index = sketch.AddSegment(newPipe1);
+
+        var newPipe2 = new SketchSegmentPipe(splitPointIndex, pipe.EndPoint, pipe.Radius);
+        int seg2Index = sketch.AddSegment(newPipe2);
+
+        sketch.DeleteSegment(pipe);
 
         return (splitPointIndex, new[] {seg1Index, seg2Index});
     }
@@ -903,6 +929,213 @@ public static class SketchUtils
             return false;
 
         return true;
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static bool TrimSegment(Sketch sketch, SketchSegment segmentToTrim, double clickParameter)
+    {
+        var curveToTrim = segmentToTrim.MakeCurve(sketch.Points);
+        if (curveToTrim == null)
+            return false;
+
+        // 1. Get all intersection parameters on the segment
+        var intersectionParams = new List<double>();
+        foreach (var otherSegment in sketch.Segments.Values)
+        {
+            if (otherSegment == segmentToTrim || otherSegment.IsAuxilliary)
+                continue;
+
+            var otherCurve = otherSegment.MakeCurve(sketch.Points);
+            if (otherCurve == null)
+                continue;
+
+            var intersector = new Geom2dAPI_InterCurveCurve(curveToTrim, otherCurve);
+            for (int i = 1; i <= intersector.NbPoints(); i++)
+            {
+                var paramsTuple = intersector.Params(i);
+                double paramOnTrim = paramsTuple.Item1;
+                double paramOnOther = paramsTuple.Item2;
+
+                // Verify that parameters lie on the trimmed curves
+                if (IsParameterOnCurve(curveToTrim, paramOnTrim) && IsParameterOnCurve(otherCurve, paramOnOther))
+                {
+                    if (!intersectionParams.Any(p => Math.Abs(p - paramOnTrim) < 1e-5))
+                    {
+                        intersectionParams.Add(paramOnTrim);
+                    }
+                }
+            }
+        }
+
+        if (intersectionParams.Count == 0)
+        {
+            // No intersections, just delete the entire segment!
+            sketch.DeleteSegment(segmentToTrim);
+            return true;
+        }
+
+        // 2. Sort parameters
+        intersectionParams.Sort();
+
+        // 3. Define the bounds
+        double startParam = curveToTrim.FirstParameter();
+        double endParam = curveToTrim.LastParameter();
+
+        bool isPeriodic = curveToTrim.IsPeriodic();
+
+        var boundaries = new List<double>();
+        if (!isPeriodic)
+        {
+            boundaries.Add(startParam);
+        }
+        foreach (var p in intersectionParams)
+        {
+            if (!isPeriodic || (p >= startParam && p <= endParam))
+            {
+                if (!boundaries.Any(b => Math.Abs(b - p) < 1e-5))
+                    boundaries.Add(p);
+            }
+        }
+        if (!isPeriodic)
+        {
+            if (!boundaries.Any(b => Math.Abs(b - endParam) < 1e-5))
+                boundaries.Add(endParam);
+        }
+        else
+        {
+            double period = curveToTrim.Period();
+            boundaries.Sort();
+            boundaries.Add(boundaries[0] + period);
+        }
+
+        // 4. Find the clicked sub-segment index
+        int clickedIndex = -1;
+        double normalizedClick = clickParameter;
+        if (isPeriodic)
+        {
+            double period = curveToTrim.Period();
+            while (normalizedClick < boundaries[0]) normalizedClick += period;
+            while (normalizedClick > boundaries[boundaries.Count - 1]) normalizedClick -= period;
+        }
+
+        for (int i = 0; i < boundaries.Count - 1; i++)
+        {
+            if (normalizedClick >= boundaries[i] - 1e-5 && normalizedClick <= boundaries[i + 1] + 1e-5)
+            {
+                clickedIndex = i;
+                break;
+            }
+        }
+
+        if (clickedIndex == -1)
+            return false;
+
+        // 5. Keep all sub-segments EXCEPT the clicked one
+        for (int i = 0; i < boundaries.Count - 1; i++)
+        {
+            if (i == clickedIndex)
+                continue;
+
+            double u1 = boundaries[i];
+            double u2 = boundaries[i+1];
+
+            Pnt2d p1 = curveToTrim.Value(u1);
+            Pnt2d p2 = curveToTrim.Value(u2);
+            if (p1.Distance(p2) < 1e-3)
+                continue;
+
+            int startIdx = -1;
+            int endIdx = -1;
+
+            if (!isPeriodic && Math.Abs(u1 - startParam) < 1e-5)
+                startIdx = segmentToTrim.StartPoint;
+            else
+                startIdx = FindOrAddPoint(sketch, p1);
+
+            if (!isPeriodic && Math.Abs(u2 - endParam) < 1e-5)
+                endIdx = segmentToTrim.EndPoint;
+            else
+                endIdx = FindOrAddPoint(sketch, p2);
+
+            SketchSegment newSegment = null;
+            if (segmentToTrim is SketchSegmentLine)
+            {
+                newSegment = new SketchSegmentLine(startIdx, endIdx);
+            }
+            else if (segmentToTrim is SketchSegmentArc)
+            {
+                double uMid = (u1 + u2) * 0.5;
+                Pnt2d pMid = curveToTrim.Value(uMid);
+                int rimIdx = FindOrAddPoint(sketch, pMid);
+                newSegment = new SketchSegmentArc(startIdx, endIdx, rimIdx);
+            }
+            else if (segmentToTrim is SketchSegmentCircle)
+            {
+                double uMid = (u1 + u2) * 0.5;
+                Pnt2d pMid = curveToTrim.Value(uMid);
+                int rimIdx = FindOrAddPoint(sketch, pMid);
+                newSegment = new SketchSegmentArc(startIdx, endIdx, rimIdx);
+            }
+            else if (segmentToTrim is SketchSegmentEllipse ellipse)
+            {
+                newSegment = new SketchSegmentEllipticalArc(startIdx, endIdx, ellipse.CenterPoint);
+            }
+            else if (segmentToTrim is SketchSegmentEllipticalArc ellipticalArc)
+            {
+                newSegment = new SketchSegmentEllipticalArc(startIdx, endIdx, ellipticalArc.CenterPoint);
+            }
+            else if (segmentToTrim is SketchSegmentBezier bezier)
+            {
+                if (bezier.Points.Length == 3)
+                {
+                    int ctrlIdx = FindOrAddPoint(sketch, sketch.Points[bezier.Points[1]]);
+                    newSegment = new SketchSegmentBezier(startIdx, ctrlIdx, endIdx);
+                }
+                else if (bezier.Points.Length == 4)
+                {
+                    int ctrl1Idx = FindOrAddPoint(sketch, sketch.Points[bezier.Points[1]]);
+                    int ctrl2Idx = FindOrAddPoint(sketch, sketch.Points[bezier.Points[2]]);
+                    newSegment = new SketchSegmentBezier(startIdx, ctrl1Idx, ctrl2Idx, endIdx);
+                }
+            }
+
+            if (newSegment != null)
+            {
+                sketch.AddSegment(newSegment);
+            }
+        }
+
+        // 6. Delete the original segment
+        sketch.DeleteSegment(segmentToTrim);
+        return true;
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static bool IsParameterOnCurve(Geom2d_Curve curve, double u, double tolerance = 1e-5)
+    {
+        double first = curve.FirstParameter();
+        double last = curve.LastParameter();
+        if (curve is Geom2d_TrimmedCurve)
+        {
+            return (u >= Math.Min(first, last) - tolerance && u <= Math.Max(first, last) + tolerance);
+        }
+        return true;
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static int FindOrAddPoint(Sketch sketch, Pnt2d point, double tolerance = 1e-4)
+    {
+        foreach (var kvp in sketch.Points)
+        {
+            if (kvp.Value.Distance(point) <= tolerance)
+            {
+                return kvp.Key;
+            }
+        }
+        return sketch.AddPoint(point);
     }
 
     //--------------------------------------------------------------------------------------------------

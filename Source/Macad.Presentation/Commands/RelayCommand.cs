@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Input;
 
 namespace Macad.Presentation;
@@ -68,10 +68,12 @@ public class RelayCommand : ICommand
     public void Execute(object parameter)
     {
         _execute();
+        CommandEventHub.FireCommandExecuted(this, parameter);
     }
 
     public void Execute()
     {
         _execute();
+        CommandEventHub.FireCommandExecuted(this, null);
     }
 }

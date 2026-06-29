@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -658,6 +658,7 @@ public sealed class WorkspaceController : BaseObject, IContextMenuItemProvider, 
                                       viewportController.V3dView, 
                                       detectedAisObjects, detectedBrepShapes) > 0)
         {
+            _MouseEventData.IsRectangleSelection = true;
             _MouseEventData.SetDetectedElements(detectedAisObjects, detectedAisObjects.Select(VisualObjects.GetEntity), detectedBrepShapes);
         }
     }
@@ -672,6 +673,7 @@ public sealed class WorkspaceController : BaseObject, IContextMenuItemProvider, 
                                       viewportController.V3dView, 
                                       detectedAisObjects, detectedBrepShapes) > 0)
         {
+            _MouseEventData.IsRectangleSelection = true;
             _MouseEventData.SetDetectedElements(detectedAisObjects, detectedAisObjects.Select(VisualObjects.GetEntity), detectedBrepShapes);
         }
     }

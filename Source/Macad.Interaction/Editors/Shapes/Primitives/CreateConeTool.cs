@@ -92,13 +92,13 @@ public class CreateConeTool : Tool
         pointAction.Finished += _RadiusAction_Finished;
 
         _CurrentPhase = Phase.Radius;
-        SetHintMessage("__Select base radius__, press `k:Ctrl` to round to grid stepping.");
+        SetHintMessage("__Select radius__, press `k:Ctrl` to round to grid stepping.");
 
         if (_ValueHudElement == null)
         {
             _ValueHudElement = new ValueHudElement
             {
-                Label = "Base Radius:",
+                Label = "Radius:",
                 Units = ValueUnits.Length
             };
             _ValueHudElement.ValueEntered += _ValueEntered;
@@ -132,7 +132,7 @@ public class CreateConeTool : Tool
         args.MarkerPosition = ElSLib.Value(_PointPlane2.X, _PointPlane2.Y, _Plane).Rounded();
 
         _EnsurePreviewShape();
-        _PreviewShape.Radius1 = _Radius;
+        _PreviewShape.Radius = _Radius;
         if(_IsTemporaryVisual)
             _VisualShape?.Update();
 
@@ -216,13 +216,14 @@ public class CreateConeTool : Tool
         {
             _Radius = Math.Abs(newValue) >= 0.001 ? newValue : 0.001;
             _EnsurePreviewShape();
-            _PreviewShape.Radius1 = _Radius;
+            _PreviewShape.Radius = _Radius;
             _RadiusAction_Finished(null, null);
         }
         else if (_CurrentPhase == Phase.Height)
         {
             _Height = newValue;
             _EnsurePreviewShape();
+            _PreviewShape.Height = _Height;
             _HeightAction_Preview(null, null);
             _HeightAction_Finished(null, null);
         }
@@ -239,11 +240,9 @@ public class CreateConeTool : Tool
         _PreviewShape = new Cone()
         {
             Height = 0.01,
-            Radius2 = 0.0
+            RadiusTop = 0.0
         };
         var body = Body.Create(_PreviewShape);
-        _PreviewShape.Body.Rotation = WorkspaceController.Workspace.GetWorkingPlaneRotation();
-        _PreviewShape.Body.Position = _PivotPoint;
         if (body.Layer.IsVisible)
         {
             _VisualShape = WorkspaceController.VisualObjects.Get(body, true);
@@ -255,5 +254,7 @@ public class CreateConeTool : Tool
             _IsTemporaryVisual = true;
         }
         _VisualShape.IsSelectable = false;
+        _PreviewShape.Body.Position = _PivotPoint.Rounded();
+        _PreviewShape.Body.Rotation = WorkspaceController.Workspace.GetWorkingPlaneRotation();
     }
 }

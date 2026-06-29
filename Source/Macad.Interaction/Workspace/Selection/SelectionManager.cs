@@ -288,7 +288,7 @@ public sealed class SelectionManager : IDisposable
     readonly List<SelectionContext> _SelectionContexts = new List<SelectionContext>();
 
     public SelectionContext CurrentContext {  get { return _SelectionContexts.LastOrDefault(); } }
-    public SelectionContext ActiveContext {  get { return _SelectionContexts.LastOrDefault() ?? _BaseContext; } }
+    public SelectionContext ActiveContext { get { return CurrentContext ?? _BaseContext; } }
 
     bool _ContextUpdatePending = false;
 

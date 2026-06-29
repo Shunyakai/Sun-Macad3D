@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using Macad.Core;
@@ -48,7 +48,9 @@ public class AppContext : InteractiveContext
         Current = new AppContext();
         ExchangeModule.Initialize();
 
+        ShortcutHandler.RegisterCommandType(typeof(AppCommands));
         ShortcutDefinition.RegisterShortcuts(Current.ShortcutHandler);
+        Current.ShortcutHandler.LoadCustomShortcuts();
     }
 
     //--------------------------------------------------------------------------------------------------

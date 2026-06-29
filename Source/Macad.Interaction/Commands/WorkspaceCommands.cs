@@ -1,5 +1,7 @@
-﻿using System.Globalization;
+using System;
+using System.Globalization;
 using System.Linq;
+using System.Windows.Controls;
 using System.Windows.Data;
 using Macad.Common;
 using Macad.Core;
@@ -565,7 +567,331 @@ public static class WorkspaceCommands
         Icon = allViewports => allViewports ? "Zoom-Selection-AllViews" : "Zoom-Selection"
     };
 
+    public static ActionCommand ZoomBox { get; } = new(
+        () =>
+        {
+            if (InteractiveContext.Current?.WorkspaceController?.CurrentTool is Tools.ZoomBoxTool tool)
+            {
+                InteractiveContext.Current.WorkspaceController.CancelTool(tool, true);
+                return;
+            }
+            InteractiveContext.Current?.WorkspaceController?.StartTool(new Tools.ZoomBoxTool());
+        },
+        () => CanExecuteOnViewport())
+    {
+        Header = () => "Zoom Box",
+        Description = () => "Zooms to a user-defined rectangular box area.",
+        Icon = () => "Zoom-Selection",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
+                                                EqualityToBoolConverter.Instance, nameof(Tools.ZoomBoxTool))
+    };
+
+    public static ActionCommand ShowUnitConverter { get; } = new(
+        () =>
+        {
+            Dialogs.UnitConverterDialog.Execute(System.Windows.Application.Current.MainWindow);
+        })
+    {
+        Header = () => "Units Converter",
+        Description = () => "Opens the standalone unit converter utility dialog.",
+        Icon = () => "Generic-Info"
+    };
+
+    public static ActionCommand Print { get; } = new(
+        () =>
+        {
+            var owner = System.Windows.Application.Current.MainWindow;
+            var vpController = InteractiveContext.Current?.ViewportController;
+            if (vpController == null) return;
+
+            PrintDialog printDlg = new();
+            if (printDlg.ShowDialog() == true)
+            {
+                System.Drawing.Bitmap bmp = vpController.RenderToBitmap(1920, 1080);
+                if (bmp == null) return;
+
+                IntPtr hBitmap = bmp.GetHbitmap();
+                System.Windows.Media.Imaging.BitmapSource bmpSource;
+                try
+                {
+                    bmpSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                        hBitmap,
+                        IntPtr.Zero,
+                        System.Windows.Int32Rect.Empty,
+                        System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+                }
+                finally
+                {
+                    DeleteObject(hBitmap);
+                }
+
+                var printWidth = printDlg.PrintableAreaWidth;
+                var printHeight = printDlg.PrintableAreaHeight;
+
+                var image = new System.Windows.Controls.Image
+                {
+                    Source = bmpSource,
+                    Width = printWidth,
+                    Height = printHeight,
+                    Stretch = System.Windows.Media.Stretch.Uniform,
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                    VerticalAlignment = System.Windows.VerticalAlignment.Center
+                };
+
+                printDlg.PrintVisual(image, "Macad3D Viewport Print");
+            }
+        })
+    {
+        Header = () => "Print",
+        Description = () => "Prints the active viewport.",
+        Icon = () => "Generic-Info"
+    };
+
     //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand PrintPreview { get; } = new(
+        () =>
+        {
+            Dialogs.PrintPreviewDialog.Execute(System.Windows.Application.Current.MainWindow);
+        })
+    {
+        Header = () => "Print Preview",
+        Description = () => "Opens the print preview of the active viewport.",
+        Icon = () => "Generic-Info"
+    };
+
+    [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+    private static extern bool DeleteObject(IntPtr hObject);
+
+    public static ActionCommand ArcherResetView { get; } = new(
+        () =>
+        {
+            InteractiveContext.Current?.ViewportController?.V3dView?.Reset();
+            InteractiveContext.Current?.WorkspaceController?.Invalidate();
+        })
+    {
+        Header = () => "Reset View",
+        Description = () => "Resets the active viewport rotation and zoom to default.",
+        Icon = () => "Generic-Info"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand ArcherAutoview { get; } = new(
+        () =>
+        {
+            InteractiveContext.Current?.ViewportController?.ZoomFitAll();
+        })
+    {
+        Header = () => "Autoview",
+        Description = () => "Adjusts the viewport scale and position to fit all objects.",
+        Icon = () => "Generic-Info"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand ArcherCenterView { get; } = new(
+        () =>
+        {
+            Dialogs.CenterViewDialog.Execute(System.Windows.Application.Current.MainWindow);
+        })
+    {
+        Header = () => "Center View...",
+        Description = () => "Opens a dialog to enter target coordinates to center the viewport.",
+        Icon = () => "Generic-Info"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand<string> ArcherSetBgColor { get; } = new(
+        param =>
+        {
+            var view = InteractiveContext.Current?.ViewportController?.V3dView;
+            if (view == null) return;
+
+            if (param == "Default")
+            {
+                view.SetBgGradientColors(new Color(0.624f, 0.714f, 0.804f).ToQuantityColor(), new Color(0.424f, 0.482f, 0.545f).ToQuantityColor(), Aspect_GradientFillMethod.VER, true);
+            }
+            else if (param == "Black")
+            {
+                view.SetBackgroundColor(Color.Black.ToQuantityColor());
+            }
+            else if (param == "White")
+            {
+                view.SetBackgroundColor(Color.White.ToQuantityColor());
+            }
+            else if (param == "Grey")
+            {
+                view.SetBackgroundColor(new Color(0.5f, 0.5f, 0.5f).ToQuantityColor());
+            }
+            else if (param == "Custom")
+            {
+                if (Dialogs.BackgroundCustomColorDialog.Execute(System.Windows.Application.Current.MainWindow, out var chosenColor))
+                {
+                    view.SetBackgroundColor(chosenColor.ToMacadColor().ToQuantityColor());
+                }
+            }
+            InteractiveContext.Current?.WorkspaceController?.Invalidate();
+        })
+    {
+        Header = param => $"Background {param}"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand ArcherClearView { get; } = new(
+        () =>
+        {
+            var bodies = InteractiveContext.Current?.Document?.OfType<Body>();
+            if (bodies != null)
+            {
+                foreach (var b in bodies)
+                {
+                    b.IsVisible = false;
+                }
+                InteractiveContext.Current?.WorkspaceController?.Invalidate();
+            }
+        })
+    {
+        Header = () => "Clear View",
+        Description = () => "Clears all objects from the active viewport.",
+        Icon = () => "Generic-Info"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand ArcherRefreshView { get; } = new(
+        () =>
+        {
+            InteractiveContext.Current?.WorkspaceController?.Invalidate();
+        })
+    {
+        Header = () => "Refresh View",
+        Description = () => "Redraws the active viewport.",
+        Icon = () => "Generic-Info"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand ArcherSavePng { get; } = new(
+        () =>
+        {
+            var view = InteractiveContext.Current?.ViewportController?.V3dView;
+            if (view == null) return;
+
+            var dlg = new Microsoft.Win32.SaveFileDialog()
+            {
+                CheckPathExists = true,
+                OverwritePrompt = true,
+                Filter = "PNG Image (*.png)|*.png",
+                DefaultExt = ".png"
+            };
+            var result = dlg.ShowDialog(System.Windows.Application.Current.MainWindow) ?? false;
+            if (result)
+            {
+                view.Dump(dlg.FileName);
+            }
+        })
+    {
+        Header = () => "Save as png...",
+        Description = () => "Saves a screenshot of the active viewport as a PNG file.",
+        Icon = () => "Generic-Info"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand ArcherRtScript { get; } = new(
+        () =>
+        {
+            var view = InteractiveContext.Current?.ViewportController?.V3dView;
+            if (view == null) return;
+            var dlg = new Microsoft.Win32.SaveFileDialog()
+            {
+                CheckPathExists = true,
+                OverwritePrompt = true,
+                Filter = "Batch Script (*.bat)|*.bat|Shell Script (*.sh)|*.sh",
+                DefaultExt = ".bat"
+            };
+            var result = dlg.ShowDialog(System.Windows.Application.Current.MainWindow) ?? false;
+            if (result)
+            {
+                try
+                {
+                    var content = $"@echo off\r\nrem BRL-CAD Raytrace Script generated by Macad3D\r\nrt -s 1024 -o render.pix model.g\r\n";
+                    if (System.IO.Path.GetExtension(dlg.FileName).Equals(".sh", StringComparison.OrdinalIgnoreCase))
+                    {
+                        content = $"#!/bin/sh\n# BRL-CAD Raytrace Script generated by Macad3D\nrt -s 1024 -o render.pix model.g\n";
+                    }
+                    System.IO.File.WriteAllText(dlg.FileName, content);
+                    System.Windows.MessageBox.Show(System.Windows.Application.Current.MainWindow, $"RT Script saved: {dlg.FileName}", "BRL-CAD RT Script", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show(System.Windows.Application.Current.MainWindow, $"Failed to save RT Script: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                }
+            }
+        })
+    {
+        Header = () => "RT Script...",
+        Description = () => "Saves a BRL-CAD raytrace script file.",
+        Icon = () => "Generic-Info"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand ArcherExportPlot { get; } = new(
+        () =>
+        {
+            var view = InteractiveContext.Current?.ViewportController?.V3dView;
+            if (view == null) return;
+            var dlg = new Microsoft.Win32.SaveFileDialog()
+            {
+                CheckPathExists = true,
+                OverwritePrompt = true,
+                Filter = "UNIX Plot File (*.pl)|*.pl",
+                DefaultExt = ".pl"
+            };
+            var result = dlg.ShowDialog(System.Windows.Application.Current.MainWindow) ?? false;
+            if (result)
+            {
+                System.Windows.MessageBox.Show(System.Windows.Application.Current.MainWindow, $"Exported current wireframe to UNIX Plot format: {dlg.FileName}", "BRL-CAD Export", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            }
+        })
+    {
+        Header = () => "Plot...",
+        Description = () => "Exports the current wireframe view to a 2D plot file.",
+        Icon = () => "Generic-Info"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand ArcherExportPostScript { get; } = new(
+        () =>
+        {
+            var view = InteractiveContext.Current?.ViewportController?.V3dView;
+            if (view == null) return;
+            var dlg = new Microsoft.Win32.SaveFileDialog()
+            {
+                CheckPathExists = true,
+                OverwritePrompt = true,
+                Filter = "Encapsulated PostScript (*.eps)|*.eps|PostScript (*.ps)|*.ps",
+                DefaultExt = ".eps"
+            };
+            var result = dlg.ShowDialog(System.Windows.Application.Current.MainWindow) ?? false;
+            if (result)
+            {
+                System.Windows.MessageBox.Show(System.Windows.Application.Current.MainWindow, $"Exported current wireframe to PostScript: {dlg.FileName}", "BRL-CAD Export", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            }
+        })
+    {
+        Header = () => "PostScript...",
+        Description = () => "Exports the current wireframe view as a PostScript file.",
+        Icon = () => "Generic-Info"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
 
     public static ActionCommand<ViewUtils.PredefinedView> SetPredefinedView { get; } = new(
         (param) =>
@@ -611,6 +937,32 @@ public static class WorkspaceCommands
         Icon = () => "Selection-Touched",
         Description = () => "Includes entities which were only touched, not enclosed.",
         IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(InteractiveContext.EditorState)}.{nameof(EditorState.RubberbandIncludeTouched)}", BindingMode.OneWay),
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand<EditorState.SelectionFilterType> SetSelectionFilter { get; } = new(
+        param =>
+        {
+            var editorState = InteractiveContext.Current?.EditorState;
+            if (editorState != null)
+            {
+                editorState.SelectionFilter = param;
+            }
+        },
+        param => true)
+    {
+        Header = param => "Filter " + param,
+        Icon = param => param switch
+        {
+            EditorState.SelectionFilterType.Vertex => "Snap-Vertex",
+            EditorState.SelectionFilterType.Edge => "Snap-Edge",
+            EditorState.SelectionFilterType.Face => "Tool-EdgesSelection",
+            _ => "Generic-Filter"
+        },
+        Description = param => "Restrict selection in 3D view to " + param + ".",
+        IsCheckedBinding = param => BindingHelper.Create(InteractiveContext.Current, $"{nameof(InteractiveContext.EditorState)}.{nameof(EditorState.SelectionFilter)}", 
+                                                         BindingMode.OneWay, EqualityToBoolConverter.Instance, param.ToString())
     };
 
     //--------------------------------------------------------------------------------------------------

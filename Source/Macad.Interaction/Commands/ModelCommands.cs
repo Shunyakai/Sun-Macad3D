@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
 using System.Windows.Data;
-using Macad.Occt;
-using Macad.Core;
 using Macad.Interaction.Editors.Shapes;
 using Macad.Core.Shapes;
 using Macad.Core.Topology;
+using Macad.Core;
 using Macad.Presentation;
+using Macad.Occt;
 
 using static Macad.Interaction.CommandHelper;
 
@@ -67,7 +67,7 @@ public static class ModelCommands
         IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
                                                 EqualityToBoolConverter.Instance, nameof(CreateCylinderTool))
     };
-        
+
     //--------------------------------------------------------------------------------------------------
         
     public static ActionCommand CreateTorus { get; } = new(
@@ -75,7 +75,7 @@ public static class ModelCommands
         {
             StartTool(new CreateTorusTool());
         },
-        CanStartTool)        
+        CanStartTool)
     {
         Header = () => "Additive Torus",
         Title = () => "Create Additive Torus",
@@ -84,9 +84,8 @@ public static class ModelCommands
         IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
                                                 EqualityToBoolConverter.Instance, nameof(CreateTorusTool))
     };
-        
+
     //--------------------------------------------------------------------------------------------------
-        
     public static ActionCommand CreateCone { get; } = new(
         () =>
         {
@@ -94,10 +93,10 @@ public static class ModelCommands
         },
         CanStartTool)        
     {
-        Header = () => "Additive Cone",
-        Title = () => "Create Additive Cone",
+        Header = () => "Cone",
+        Title = () => "Create Cone",
         Icon = () => "Prim-Cone",
-        Description = () => "Creates a new body with a cone shape.",
+        Description = () => "Creates a new body with a conical (or truncated conical) shape.",
         IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
                                                 EqualityToBoolConverter.Instance, nameof(CreateConeTool))
     };
@@ -143,6 +142,30 @@ public static class ModelCommands
         Icon = (mode) => "Prim-Sketch",
         Description = (mode) => "Creates a new body with a sketch shape.",
         HelpTopic = (mode) => "0dc12d15-5450-460c-909b-f25ed1cf4b7e"
+    };
+
+    public static ActionCommand CreateRegularPolygon { get; } = new(
+        () => { StartTool(new CreateRegularPolygonTool()); }, CanStartTool)
+    {
+        Header = () => "Regular Polygon",
+        Title = () => "Create Regular Polygon",
+        Icon = () => "Prim-Sketch",
+        Description = () => "Draws a parametric regular polygon on the workplane.",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
+                                                EqualityToBoolConverter.Instance, nameof(CreateRegularPolygonTool))
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand CreateReferencePoint { get; } = new(
+        () => { StartTool(new CreateReferencePointTool()); }, CanStartTool)
+    {
+        Header = () => "Reference Point",
+        Title = () => "Create Reference Point",
+        Icon = () => "WorkingPlane-Set",
+        Description = () => "Places an isolated reference point on the active workplane.",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
+                                                EqualityToBoolConverter.Instance, nameof(CreateReferencePointTool))
     };
 
     //--------------------------------------------------------------------------------------------------
@@ -594,8 +617,6 @@ public static class ModelCommands
         HelpTopic = "5974b87b-8ce2-4454-b400-377b936650bb"
     };
 
-    //--------------------------------------------------------------------------------------------------
-
     public static ActionCommand CheckGeometry { get; } = new(
         () =>
         {
@@ -801,6 +822,89 @@ public static class ModelCommands
         Header = () => "Check Geometry",
         Description = () => "Checks the validity of the selected shape geometry.",
         Icon = () => "Tool-CheckGeometry"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand ShowGeometryInfo { get; } = new(
+        () =>
+        {
+            var selectedEntities = InteractiveContext.Current.WorkspaceController?.Selection?.SelectedEntities;
+            if (selectedEntities == null || selectedEntities.Count == 0)
+            {
+                System.Windows.MessageBox.Show(
+                    System.Windows.Application.Current.MainWindow,
+                    "Please select one or more objects to show geometry info.",
+                    "Geometry Info",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning
+                );
+                return;
+            }
+
+            var messages = new System.Text.StringBuilder();
+            foreach (var entity in selectedEntities.OfType<Body>())
+            {
+                var shape = entity.GetBRep();
+                if (shape == null) continue;
+
+                var bbox = shape.BoundingBox();
+                var ext = bbox.Extents();
+                var minMax = bbox.MinMax();
+
+                messages.AppendLine($"Object: {entity.Name}");
+                messages.AppendLine($"--------------------------------------------------");
+                messages.AppendLine($"Bounding Box Extents:");
+                messages.AppendLine($"  Width (X):  {ext.X:F4} mm");
+                messages.AppendLine($"  Length (Y): {ext.Y:F4} mm");
+                messages.AppendLine($"  Height (Z): {ext.Z:F4} mm");
+                messages.AppendLine();
+                messages.AppendLine($"Bounding Box Min/Max:");
+                messages.AppendLine($"  Min Point:  ({minMax.minX:F4}, {minMax.minY:F4}, {minMax.minZ:F4})");
+                messages.AppendLine($"  Max Point:  ({minMax.maxX:F4}, {minMax.maxY:F4}, {minMax.maxZ:F4})");
+                messages.AppendLine();
+                
+                if (entity.Shape?.ShapeType == ShapeType.Solid)
+                {
+                    try
+                    {
+                        messages.AppendLine($"Solid Properties:");
+                        messages.AppendLine($"  Volume:       {shape.Volume():F4} mm³");
+                        messages.AppendLine($"  Surface Area: {shape.Area():F4} mm²");
+                        var com = shape.CenterOfMass();
+                        messages.AppendLine($"  Center of Mass: ({com.X:F4}, {com.Y:F4}, {com.Z:F4})");
+                    }
+                    catch { }
+                }
+                messages.AppendLine();
+                messages.AppendLine();
+            }
+
+            if (messages.Length == 0)
+            {
+                System.Windows.MessageBox.Show(
+                    System.Windows.Application.Current.MainWindow,
+                    "Selected objects do not have valid geometry data.",
+                    "Geometry Info",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning
+                );
+                return;
+            }
+
+            System.Windows.MessageBox.Show(
+                System.Windows.Application.Current.MainWindow,
+                messages.ToString().TrimEnd(),
+                "Geometry Info - Bounding Box",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Information
+            );
+        },
+        () => CanExecuteOnMulti(entity => entity is Body))
+    {
+        Header = () => "Geometry Info",
+        Description = () => "Displays geometric bounding box and properties of the selected objects.",
+        Icon = () => "Generic-Info"
     };
 
     //--------------------------------------------------------------------------------------------------

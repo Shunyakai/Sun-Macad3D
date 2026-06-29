@@ -16,8 +16,8 @@ public class ConeTests
     {
         var shape = new Cone()
         {
-            Radius1 = 10,
-            Radius2 = 0,
+            Radius = 10,
+            RadiusTop = 0,
             Height = 20
         };
 
@@ -30,8 +30,8 @@ public class ConeTests
     {
         var shape = new Cone()
         {
-            Radius1 = 10,
-            Radius2 = 5,
+            Radius = 10,
+            RadiusTop = 5,
             Height = 20
         };
 
@@ -44,8 +44,8 @@ public class ConeTests
     {
         var shape = new Cone()
         {
-            Radius1 = 10,
-            Radius2 = 5,
+            Radius = 10,
+            RadiusTop = 5,
             Height = 20,
             SegmentAngle = 180
         };
@@ -59,8 +59,8 @@ public class ConeTests
     {
         var shape = new Cone()
         {
-            Radius1 = 10,
-            Radius2 = 0,
+            Radius = 10,
+            RadiusTop = 0,
             Height = -20
         };
 

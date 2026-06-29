@@ -1,4 +1,4 @@
-﻿using Macad.Common;
+using Macad.Common;
 using Macad.Core;
 using Macad.Occt;
 using Macad.Occt.Extensions;
@@ -976,6 +976,22 @@ public sealed class ViewportController : BaseObject, IDisposable
             case RubberbandSelectionMode.Rectangle:
                 var points = _CalcRectangleSelectionPoints(true);
                 _AisRubberBand.SetRectangle(points[0], points[1], points[2], points[3]);
+
+                // Directional selection: Left-to-Right is inclusive, Right-to-Left is crossing
+                if (_LastMousePosition.X >= _StartedMousePosition.X)
+                {
+                    _RubberbandIncludeTouched = false;
+                    _AisRubberBand.SetLineType(Aspect_TypeOfLine.SOLID);
+                    _AisRubberBand.SetLineColor(new Color(0.0f, 0.4f, 0.8f).ToQuantityColor()); // Blue
+                    _AisRubberBand.SetFillColor(new Color(0.0f, 0.4f, 0.8f).ToQuantityColor());
+                }
+                else
+                {
+                    _RubberbandIncludeTouched = true;
+                    _AisRubberBand.SetLineType(Aspect_TypeOfLine.DASH);
+                    _AisRubberBand.SetLineColor(new Color(0.0f, 0.8f, 0.4f).ToQuantityColor()); // Green
+                    _AisRubberBand.SetFillColor(new Color(0.0f, 0.8f, 0.4f).ToQuantityColor());
+                }
                 break;
 
             case RubberbandSelectionMode.Freehand:

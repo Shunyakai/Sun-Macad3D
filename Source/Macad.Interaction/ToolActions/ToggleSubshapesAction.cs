@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Macad.Core;
 using Macad.Occt;
@@ -122,7 +122,10 @@ public class ToggleSubshapesAction : ToolAction
                 };
                 Finished?.Invoke(this, args);
                 data.Return.ForceReDetection = true;
-                break;
+                if (!data.IsRectangleSelection)
+                {
+                    break;
+                }
             }
         }
     }

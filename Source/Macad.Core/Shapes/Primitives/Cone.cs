@@ -11,18 +11,18 @@ public sealed class Cone : Shape
     #region Construction Properties
 
     [SerializeMember]
-    public double Radius1
+    public double Radius
     {
         get
         {
-            return _Radius1;
+            return _Radius;
         }
         set
         {
-            if (_Radius1 != value)
+            if (_Radius != value)
             {
                 SaveUndo();
-                _Radius1 = value >= 0.0 ? value : 0.0;
+                _Radius = value > 0.0 ? value : 0.001;
                 Invalidate();
                 RaisePropertyChanged();
             }
@@ -32,18 +32,18 @@ public sealed class Cone : Shape
     //--------------------------------------------------------------------------------------------------
 
     [SerializeMember]
-    public double Radius2
+    public double RadiusTop
     {
         get
         {
-            return _Radius2;
+            return _RadiusTop;
         }
         set
         {
-            if (_Radius2 != value)
+            if (_RadiusTop != value)
             {
                 SaveUndo();
-                _Radius2 = value >= 0.0 ? value : 0.0;
+                _RadiusTop = value >= 0.0 ? value : 0.0;
                 Invalidate();
                 RaisePropertyChanged();
             }
@@ -95,8 +95,8 @@ public sealed class Cone : Shape
 
     #region Members
 
-    private double _Radius1;
-    private double _Radius2;
+    private double _Radius;
+    private double _RadiusTop;
     private double _Height;
     private double _SegmentAngle;
 
@@ -111,12 +111,12 @@ public sealed class Cone : Shape
 
     //--------------------------------------------------------------------------------------------------
 
-    public static Cone Create(double radius1, double radius2, double height)
+    public static Cone Create(double radius, double radiusTop, double height)
     {
         return new Cone()
         {
-            _Radius1 = radius1,
-            _Radius2 = radius2,
+            _Radius = radius,
+            _RadiusTop = radiusTop,
             _Height = height
         };
     }
@@ -125,8 +125,8 @@ public sealed class Cone : Shape
 
     public Cone()
     {
-        _Radius1 = 1.0;
-        _Radius2 = 0.0;
+        _Radius = 1.0;
+        _RadiusTop = 0.0;
         _Height = 1.0;
         _SegmentAngle = 360.0;
     }
@@ -139,17 +139,13 @@ public sealed class Cone : Shape
 
     protected override bool MakeInternal(MakeFlags flags)
     {
-        var r1 = Math.Max(Radius1, 0.0);
-        var r2 = Math.Max(Radius2, 0.0);
-        if (r1 == 0.0 && r2 == 0.0)
-        {
-            r1 = 0.001;
-        }
+        var radius = Radius > 0.0 ? Radius : 0.001;
+        var radiusTop = RadiusTop >= 0.0 ? RadiusTop : 0.0;
         var height = Math.Max(Height.Abs(), 0.001);
         
         var makeCone = SegmentAngle is <= 0 or >= 360
-                               ? new BRepPrimAPI_MakeCone(r1, r2, height) 
-                               : new BRepPrimAPI_MakeCone(r1, r2, height, SegmentAngle.Clamp(0.001, 360.0).ToRad());
+                           ? new BRepPrimAPI_MakeCone(radius, radiusTop, height) 
+                           : new BRepPrimAPI_MakeCone(radius, radiusTop, height, SegmentAngle.Clamp(0.001, 360.0).ToRad());
 
         TopoDS_Shape brep = makeCone.Solid();
         if (_Height < 0)

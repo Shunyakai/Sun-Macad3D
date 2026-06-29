@@ -647,4 +647,15 @@ public static class AppCommands
         Icon = () => "Tool-Align"
     };
 
+    public static ActionCommand ShowCustomizeDialog { get; } = new(
+        () =>
+        {
+            Macad.Interaction.Dialogs.CustomizeDialog.Execute(MainWindow.Current); 
+        })
+    {
+        Header = () => "Customize Settings",
+        Description = () => "Opens the dialog for remapping shortcuts and running macros.",
+        Icon = () => "App-Preferences"
+    };
+
 }

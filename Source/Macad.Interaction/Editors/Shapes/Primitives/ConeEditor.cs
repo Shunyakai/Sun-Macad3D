@@ -13,7 +13,7 @@ public sealed class ConeEditor : Editor<Cone>
     LabelHudElement[] _HudElements = new LabelHudElement[2];
     bool? _HeightDirection;
     double _StartHeight;
-    double _StartRadius1;
+    double _StartRadius;
     Pnt _StartPosition;
     bool _IsScaling;
 
@@ -85,13 +85,12 @@ public sealed class ConeEditor : Editor<Cone>
         if (!_IsScaling)
         {
             _StartHeight = Entity.Height;
-            _StartRadius1 = Entity.Radius1;
+            _StartRadius = Entity.Radius;
             _StartPosition = Entity.Body.Position;
         }
 
-        double maxR = Math.Max(Entity.Radius1, Entity.Radius2);
-        Bnd_Box box = new Bnd_Box(new Pnt(-maxR, -maxR, 0.0), 
-                                  new Pnt( maxR,  maxR, Entity.Height));
+        Bnd_Box box = new Bnd_Box(new Pnt(-Entity.Radius, -Entity.Radius, 0.0), 
+                                  new Pnt( Entity.Radius,  Entity.Radius, Entity.Height));
         _ScaleAction.Box = box;
         _ScaleAction.Transformation = Entity.Body.GetTransformation();
     }
@@ -104,28 +103,28 @@ public sealed class ConeEditor : Editor<Cone>
         SetHintMessage("__Scale cone__ using gizmo, press `k:Ctrl` to round to grid stepping, press `k:Shift` to scale relative to center.");
 
         double newHeight = 0;
-        double newRadius1 = 0;
+        double newRadius = 0;
         Pnt newPosition = _StartPosition;
 
         bool center = args.MouseEventData.ModifierKeys.HasFlag(ModifierKeys.Shift);
 
-        double radius1Delta = args.DeltaSum * 0.5 * Math.Max(args.Direction.X.Abs(), args.Direction.Y.Abs());
-        if (radius1Delta != 0)
+        double radiusDelta = args.DeltaSum * 0.5 * Math.Max(args.Direction.X.Abs(), args.Direction.Y.Abs());
+        if (radiusDelta != 0)
         {
             if (center)
-                radius1Delta *= 2.0;
+                radiusDelta *= 2.0;
 
-            newRadius1 = _StartRadius1 + radius1Delta;
+            newRadius = _StartRadius + radiusDelta;
             if (args.MouseEventData.ModifierKeys.HasFlag(ModifierKeys.Control))
             {
-                newRadius1 = Maths.RoundToNearest(newRadius1, WorkspaceController.Workspace.GridStep);
+                newRadius = Maths.RoundToNearest(newRadius, WorkspaceController.Workspace.GridStep);
             }
 
-            if (newRadius1 < 0)
+            if (newRadius <= 0)
                 return;
 
-            radius1Delta = newRadius1 - _StartRadius1;
-            if (radius1Delta == 0)
+            radiusDelta = newRadius - _StartRadius;
+            if (radiusDelta == 0)
                 return;
         }
 
@@ -173,14 +172,14 @@ public sealed class ConeEditor : Editor<Cone>
             _HudElements[1]?.SetValue($"Height: {Entity.Height.ToInvariantString("F2")} mm");
         }
 
-        if (newRadius1 != 0)
+        if (newRadius != 0)
         {
-            Entity.Radius1 = newRadius1;
+            Entity.Radius = newRadius;
 
             Vec offset = new Vec(Math.Sign(args.Direction.X), Math.Sign(args.Direction.Y), 0);
             if (offset != Vec.Zero && !center)
             {
-                newPosition.Translate(offset.Scaled(radius1Delta)
+                newPosition.Translate(offset.Scaled(radiusDelta)
                                             .Transformed(new Trsf(Entity.Body.Rotation)));
             }
             if (_HudElements[0] == null)
@@ -188,7 +187,7 @@ public sealed class ConeEditor : Editor<Cone>
                 _HudElements[0] = new LabelHudElement();
                 Add(_HudElements[0]);
             }
-            _HudElements[0]?.SetValue($"Radius 1:  {Entity.Radius1.ToInvariantString("F2")} mm");
+            _HudElements[0]?.SetValue($"Radius:  {Entity.Radius.ToInvariantString("F2")} mm");
         }
 
         Entity.Body.Position = newPosition;

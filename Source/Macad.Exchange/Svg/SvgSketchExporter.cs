@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Macad.Common;
 using Macad.Core;
 using Macad.Core.Shapes;
@@ -201,6 +201,10 @@ internal sealed class SvgSketchExporter : SvgExporterBase
         {
             case SketchSegmentLine lineSegment:
                 return _AddLineSegment(lineSegment, start, end);
+
+            case SketchSegmentPipe pipeSegment:
+                _CurrentPath.Segments.Add(new SvgPathSegLineto(start, end));
+                return true;
 
             case SketchSegmentBezier bezierSegment:
                 return _AddBezierSegment(bezierSegment, start, end);

@@ -1,0 +1,118 @@
+<mmp:Dialog x:Class="Macad.Interaction.Dialogs.CustomizeDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mmp="clr-namespace:Macad.Presentation;assembly=Macad.Presentation"
+             mc:Ignorable="d" 
+             d:DesignWidth="600" d:DesignHeight="450" 
+             Title="Customize Settings"
+             ResizeMode="NoResize" 
+             ShowInTaskbar="False" 
+             SizeToContent="WidthAndHeight"
+             Width="620" Height="480"
+             Padding="0"
+             Style="{StaticResource {x:Type mmp:Dialog}}"
+             DataContext="{Binding RelativeSource={RelativeSource Self}}">
+    
+    <mmp:Dialog.Footer>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Save &amp; Close" IsDefault="True" Click="OnSaveClick"
+                    Style="{StaticResource Macad.Styles.Button.DialogFooter}" />
+            <Button Content="Cancel" IsCancel="True" Click="OnCancelClick"
+                    Style="{StaticResource Macad.Styles.Button.DialogFooter}" />
+        </StackPanel>
+    </mmp:Dialog.Footer>
+
+    <TabControl Margin="10" Width="580" Height="360" Background="{StaticResource Macad.Brushes.Panel.Background}">
+        <!-- Keyboard Shortcuts Tab -->
+        <TabItem Header="Keyboard Shortcuts" Style="{StaticResource {x:Type TabItem}}">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <ListView x:Name="commandListView" 
+                          ItemsSource="{Binding Commands}" 
+                          Height="240"
+                          Background="Transparent"
+                          BorderThickness="1"
+                          BorderBrush="Gray"
+                          SelectionMode="Single"
+                          SelectionChanged="OnCommandSelectionChanged">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Command" DisplayMemberBinding="{Binding Title}" Width="250" />
+                            <GridViewColumn Header="Current Shortcut" DisplayMemberBinding="{Binding CurrentShortcut}" Width="150" />
+                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+
+                <Grid Grid.Row="1" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Press Shortcut Key: " VerticalAlignment="Center" Foreground="{StaticResource Macad.Brushes.Text}" />
+                    <TextBox x:Name="assignTextBox" 
+                             Grid.Column="1" 
+                             Margin="5,0,5,0" 
+                             VerticalAlignment="Center" 
+                             PreviewKeyDown="OnAssignTextBoxKeyDown" 
+                             IsReadOnly="True" 
+                             Background="#2A2A2A" 
+                             Foreground="White"
+                             BorderBrush="Gray"
+                             Padding="3" />
+                    <Button Grid.Column="2" 
+                            Content="Assign" 
+                            Width="80" 
+                            Click="OnAssignClick"
+                            Style="{StaticResource {x:Type Button}}" />
+                </Grid>
+            </Grid>
+        </TabItem>
+
+        <!-- Macros Tab -->
+        <TabItem Header="Macros" Style="{StaticResource {x:Type TabItem}}">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <ListView x:Name="macroListView" 
+                          ItemsSource="{Binding MacroList}" 
+                          Height="240"
+                          Background="Transparent"
+                          BorderThickness="1"
+                          BorderBrush="Gray"
+                          SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="{Binding}" Foreground="{StaticResource Macad.Brushes.Text}" FontSize="13" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <Grid Grid.Row="1" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Macros are saved under %APPDATA%/Macad/Macros" VerticalAlignment="Center" Foreground="Gray" />
+                    <Button Grid.Column="1" 
+                            Content="Run Macro" 
+                            Width="100" 
+                            Click="OnRunMacroClick"
+                            Style="{StaticResource {x:Type Button}}" />
+                </Grid>
+            </Grid>
+        </TabItem>
+    </TabControl>
+</mmp:Dialog>

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Macad.Interaction.Visual;
 using Macad.Common;
@@ -26,34 +26,18 @@ public class SketchEditorSegmentElement : SketchEditorElement
     {
         Segment = segment;
         SegmentIndex = segmentIndex;
-
-        if (segmentIndex == -1 && sketchEditorTool != null && sketchEditorTool.UseAuxiliaryMode)
-        {
-            Segment.IsAuxilliary = true;
-        }
     }
 
     //--------------------------------------------------------------------------------------------------
 
     public override void UpdateVisual()
     {
-        var color = IsSelected ? Colors.SketchEditorSelection : 
-                    Segment.IsAuxilliary ? Colors.SketchEditorAuxillary :
-                    IsCreating ? Colors.SketchEditorCreating : 
-                    Colors.SketchEditorSegments;
-        if (AisObject != null)
-        {
-            AisObject.SetColor(color.ToQuantityColor());
-            var drawer = AisObject.Attributes();
-            if (drawer != null)
-            {
-                var type = Segment.IsAuxilliary ? Aspect_TypeOfLine.DASH : Aspect_TypeOfLine.SOLID;
-                var lineAspect = new Prs3d_LineAspect(color.ToQuantityColor(), type, 2.0);
-                drawer.SetLineAspect(lineAspect);
-                drawer.SetWireAspect(lineAspect);
-            }
-            SketchEditorTool.WorkspaceController.AisContext.Redisplay(AisObject, false);
-        }
+        AisObject?.SetColor(
+            (IsSelected ? Colors.SketchEditorSelection : 
+            Segment.IsAuxilliary ? Colors.SketchEditorAuxillary :
+            IsCreating ? Colors.SketchEditorCreating : 
+            Colors.SketchEditorSegments)
+            .ToQuantityColor());
     }
 
     //--------------------------------------------------------------------------------------------------

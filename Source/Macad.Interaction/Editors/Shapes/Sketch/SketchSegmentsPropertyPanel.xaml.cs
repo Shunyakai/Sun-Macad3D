@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Macad.Common;
@@ -84,6 +84,12 @@ public partial class SketchSegmentsPropertyPanel : PropertyPanel
                     default: Info = grade + "th Grade"; break;
                 }
                 
+            }
+            else if (segment is SketchSegmentPipe pipe)
+            {
+                Type = "Pipe Profile";
+                var length = points[pipe.Points[0]].Distance(points[pipe.Points[1]]).Round();
+                Info = $"Radius: {pipe.Radius.Round()} mm, Length: {length} mm";
             }
         }
 

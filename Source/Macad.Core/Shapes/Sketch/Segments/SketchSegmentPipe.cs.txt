@@ -1,0 +1,40 @@
+using System.IO;
+using Macad.Common.Serialization;
+using Macad.Occt;
+
+namespace Macad.Core.Shapes;
+
+[SerializeType]
+public sealed class SketchSegmentPipe : SketchSegment
+{
+    public int StartPoint { get; set; }
+    public int EndPoint { get; set; }
+    public double Radius { get; set; }
+
+    public override SegmentType Type => SegmentType.Auxiliary;
+
+    public SketchSegmentPipe() {}
+
+    public SketchSegmentPipe(int startPoint, int endPoint, double radius)
+    {
+        StartPoint = startPoint;
+        EndPoint = endPoint;
+        Radius = radius;
+    }
+
+    // Tells Macad3D how to load this tool from a file
+    public override void ReadDiskFields(Reader reader)
+    {
+        StartPoint = reader.ReadInt("StartPoint");
+        EndPoint = reader.ReadInt("EndPoint");
+        Radius = reader.ReadDouble("Radius");
+    }
+
+    // Tells Macad3D how to save this tool to a file
+    public override void WriteDiskFields(Writer writer)
+    {
+        writer.WriteInt("StartPoint", StartPoint);
+        writer.WriteInt("EndPoint", EndPoint);
+        writer.WriteDouble("Radius", Radius);
+    }
+}

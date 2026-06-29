@@ -4,13 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:mmp="clr-namespace:Macad.Presentation;assembly=Macad.Presentation"
-             xmlns:mmi="clr-namespace:Macad.Interaction"
              xmlns:panels="clr-namespace:Macad.Interaction.Panels"
              mc:Ignorable="d" 
              DataContext="{Binding RelativeSource={RelativeSource Self}}"
              Style="{DynamicResource Macad.Styles.PropertyPanel}"
              Header="Cone">
-    
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -24,22 +22,32 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Radius 1" Style="{DynamicResource Macad.Styles.TextBlock.Property}" />
-            <mmp:ValueEditBox Grid.Row="0" Grid.Column="1" 
-                        Units="Length" Value="{Binding Cone.Radius1, NotifyOnSourceUpdated=True}" HorizontalAlignment="Left" />
+            <TextBlock  Grid.Row="0" Grid.Column="0" Text="Base Radius"  Style="{DynamicResource Macad.Styles.TextBlock.Property}"  />
+            <mmp:ValueEditBox  Grid.Row="0" Grid.Column="1"  Width="100"
+                               Units="Length" 
+                               Value="{Binding Cone.Radius, NotifyOnSourceUpdated=True}" 
+                               MinValue="0.01"
+                               AutomationProperties.AutomationId="ConeRadius"/>
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Radius 2" Style="{DynamicResource Macad.Styles.TextBlock.Property}" />
-            <mmp:ValueEditBox Grid.Row="1" Grid.Column="1" 
-                        Units="Length" Value="{Binding Cone.Radius2, NotifyOnSourceUpdated=True}" HorizontalAlignment="Left" />
+            <TextBlock  Grid.Row="1" Grid.Column="0" Text="Top Radius"  Style="{DynamicResource Macad.Styles.TextBlock.Property}"  />
+            <mmp:ValueEditBox  Grid.Row="1" Grid.Column="1"  Width="100"
+                               Units="Length" 
+                               Value="{Binding Cone.RadiusTop, NotifyOnSourceUpdated=True}" 
+                               MinValue="0.0"
+                               AutomationProperties.AutomationId="ConeRadiusTop"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Height" Style="{DynamicResource Macad.Styles.TextBlock.Property}" />
-            <mmp:ValueEditBox Grid.Row="2" Grid.Column="1" 
-                        Units="Length" Value="{Binding Cone.Height, NotifyOnSourceUpdated=True}" HorizontalAlignment="Left" />
+            <TextBlock  Grid.Row="2" Grid.Column="0" Text="Height"  Style="{DynamicResource Macad.Styles.TextBlock.Property}"  />
+            <mmp:ValueEditBox  Grid.Row="2" Grid.Column="1"  Width="100"
+                               Units="Length"
+                               Value="{Binding Cone.Height, NotifyOnSourceUpdated=True}"
+                               AutomationProperties.AutomationId="ConeHeight"/>
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Segment" Style="{DynamicResource Macad.Styles.TextBlock.Property}" />
-            <mmp:ValueEditBox Grid.Row="3" Grid.Column="1" 
-                        Units="Degree" Value="{Binding Cone.SegmentAngle, NotifyOnSourceUpdated=True}" 
-                        MinValue="0" MaxValue="360" HorizontalAlignment="Left" />
+            <TextBlock  Grid.Row="3" Grid.Column="0" Text="Segment"  Style="{DynamicResource Macad.Styles.TextBlock.Property}"  />
+            <mmp:ValueEditBox  Grid.Row="3" Grid.Column="1"  Width="100"
+                               Units="Degree" 
+                               Value="{Binding Cone.SegmentAngle, NotifyOnSourceUpdated=True}"
+                               MinValue="0" MaxValue="360"
+                               AutomationProperties.AutomationId="ConeSegment"/>
         </Grid>
     </Grid>
 </panels:PropertyPanel>

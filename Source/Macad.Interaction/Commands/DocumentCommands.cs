@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using Macad.Common;
 using Macad.Interaction.Dialogs;
@@ -162,6 +162,9 @@ public static class DocumentCommands
             };
         }
     };
+
+    //--------------------------------------------------------------------------------------------------
+
     #endregion
 
 }

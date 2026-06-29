@@ -1,0 +1,49 @@
+using System.Collections.Generic;
+using Macad.Core.Shapes;
+using Macad.Occt;
+using Macad.Presentation;
+
+namespace Macad.Interaction.Editors.Shapes;
+
+public sealed class SketchSegmentPipeCreator : SketchSegmentCreator
+{
+    SketchPointAction _PointAction;
+    readonly Dictionary<int, Pnt2d> _Points = new(2);
+    int _Step = 0;
+
+    protected override bool OnStart()
+    {
+        _PointAction = new SketchPointAction(SketchEditorTool);
+        if (!StartAction(_PointAction)) return false;
+
+        _PointAction.Finished += _PointAction_Finished;
+        SetHintMessage("Click to set the START point of the Pipe.");
+        return true;
+    }
+
+    void _PointAction_Finished(SketchPointAction sender, SketchPointAction.EventArgs args)
+    {
+        if (_Step == 0)
+        {
+            _Points[0] = args.Point;
+            _Step = 1;
+            SetHintMessage("Click to set the END point of the Pipe.");
+            _PointAction.Reset();
+        }
+        else if (_Step == 1)
+        {
+            _Points[1] = args.Point;
+            _Step = 2;
+            SetHintMessage("Move cursor and click to set the RADIUS thickness.");
+            _PointAction.Reset();
+        }
+        else if (_Step == 2)
+        {
+            double radius = _Points[1].Distance(args.Point);
+            var segment = new SketchSegmentPipe(0, 1, radius);
+
+            // Saves the newly created shape to Macad3D's sketch
+            SketchEditorTool.FinishSegmentCreation(_Points, [0, 1], [segment], null, 1);
+        }
+    }
+}

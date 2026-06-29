@@ -3,6 +3,7 @@ using System.ComponentModel;
 using Macad.Interaction.Editors.Shapes;
 using Macad.Common;
 using Macad.Common.Serialization;
+using Macad.Core;
 using Macad.Interaction.Panels;
 using System.Runtime.CompilerServices;
 
@@ -45,6 +46,14 @@ public sealed class EditorState : BaseObject, IDisposable
         
     //--------------------------------------------------------------------------------------------------
 
+    public bool SketchConstructionModeActive
+    {
+        get { return _CurrentSketchEditorTool?.UseAuxiliaryMode ?? false; }
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+
     public string ActiveSketchTool
     {
         get;
@@ -71,13 +80,6 @@ public sealed class EditorState : BaseObject, IDisposable
 
     //--------------------------------------------------------------------------------------------------
 
-    public bool SketchConstructionModeActive
-    {
-        get { return _CurrentSketchEditorTool?.UseAuxiliaryMode ?? false; }
-    }
-
-    //--------------------------------------------------------------------------------------------------
-
     SketchEditorTool _CurrentSketchEditorTool;
         
     void _UpdateSketchEditTool(SketchEditorTool sketchEditorTool)
@@ -93,7 +95,7 @@ public sealed class EditorState : BaseObject, IDisposable
         {
             _CurrentSketchEditorTool = sketchEditorTool;
             _CurrentSketchEditorTool.PropertyChanged += _SketchEditorTool_PropertyChanged;
-            RaisePropertyChanged(nameof(SketchClipPlaneEnabled));
+            RaisePropertyChanged(nameof(SketchClipPlaneEnabled));
             RaisePropertyChanged(nameof(SketchConstructionModeActive));
         }
     }
@@ -111,7 +113,8 @@ public sealed class EditorState : BaseObject, IDisposable
         }
         else if (e.PropertyName == nameof(SketchEditorTool.ClipPlaneEnabled))
         {
-            RaisePropertyChanged(nameof(SketchClipPlaneEnabled));
+            RaisePropertyChanged(nameof(SketchClipPlaneEnabled));
+            RaisePropertyChanged(nameof(SketchConstructionModeActive));
         }
         else if (e.PropertyName == nameof(SketchEditorTool.UseAuxiliaryMode))
         {
@@ -176,6 +179,67 @@ public sealed class EditorState : BaseObject, IDisposable
             field = value;
             RaisePropertyChanged();
         }
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    public enum SelectionFilterType
+    {
+        All,
+        Vertex,
+        Edge,
+        Face
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    [SerializeMember]
+    public SelectionFilterType SelectionFilter
+    {
+        get;
+        set
+        {
+            if (field != value)
+            {
+                field = value;
+                RaisePropertyChanged();
+                _UpdateSelectionFilter();
+            }
+        }
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
+    void _UpdateSelectionFilter()
+    {
+        var workspaceController = InteractiveContext.Current?.WorkspaceController;
+        if (workspaceController == null)
+            return;
+
+        var selectionContext = workspaceController.Selection.ActiveContext;
+        if (selectionContext == null)
+            return;
+
+        switch (SelectionFilter)
+        {
+            case SelectionFilterType.All:
+                selectionContext.SetSelectionFilter(null);
+                selectionContext.SetSubshapeSelection(SubshapeTypes.None);
+                break;
+            case SelectionFilterType.Vertex:
+                selectionContext.SetSelectionFilter(new SubshapeTypeSelectionFilter(SubshapeType.Vertex));
+                selectionContext.SetSubshapeSelection(SubshapeTypes.Vertex);
+                break;
+            case SelectionFilterType.Edge:
+                selectionContext.SetSelectionFilter(new SubshapeTypeSelectionFilter(SubshapeType.Edge));
+                selectionContext.SetSubshapeSelection(SubshapeTypes.Edge);
+                break;
+            case SelectionFilterType.Face:
+                selectionContext.SetSelectionFilter(new SubshapeTypeSelectionFilter(SubshapeType.Face));
+                selectionContext.SetSubshapeSelection(SubshapeTypes.Face);
+                break;
+        }
+        workspaceController.Selection.Invalidate();
     }
 
     //--------------------------------------------------------------------------------------------------
