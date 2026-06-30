@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Macad.Core.Shapes;
 using Macad.Core.Topology;
@@ -11,11 +11,11 @@ internal static class CommandHelper
 
     //--------------------------------------------------------------------------------------------------
 
-    public static Tool CurrentTool => InteractiveContext.Current.WorkspaceController?.CurrentTool;
-    public static SelectionManager Selection => InteractiveContext.Current.WorkspaceController?.Selection;
-    public static void Invalidate() => InteractiveContext.Current.WorkspaceController.Invalidate();
-    public static bool StartTool(Tool tool) => InteractiveContext.Current.WorkspaceController.StartTool(tool);
-    public static void Commit() => InteractiveContext.Current.UndoHandler.Commit();
+    public static Tool CurrentTool => InteractiveContext.Current?.WorkspaceController?.CurrentTool;
+    public static SelectionManager Selection => InteractiveContext.Current?.WorkspaceController?.Selection;
+    public static void Invalidate() => InteractiveContext.Current?.WorkspaceController?.Invalidate();
+    public static bool StartTool(Tool tool) => InteractiveContext.Current?.WorkspaceController?.StartTool(tool) ?? false;
+    public static void Commit() => InteractiveContext.Current?.UndoHandler?.Commit();
 
     //--------------------------------------------------------------------------------------------------
 

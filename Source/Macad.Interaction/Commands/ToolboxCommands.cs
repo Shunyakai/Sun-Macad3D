@@ -79,7 +79,107 @@ public static class ToolboxCommands
 
     //--------------------------------------------------------------------------------------------------
 
-    public static RelayCommand PrewarmScriptCompiler { get; } = new(ScriptUtils.WarmupScriptCompiler);
+    public static ActionCommand ScriptCreate { get; } = new(
+        () =>
+        {
+            var box = Box.Create(10, 10, 10);
+            var body = Body.Create(box);
+            InteractiveContext.Current.Document.Add(body);
+            Commit();
+            Invalidate();
+            Messages.Info("Created a box body via automation.");
+        },
+        () => InteractiveContext.Current?.Document != null
+    )
+    {
+        Header = () => "Create",
+        Title = () => "Create Solid",
+        Description = () => "Create a solid body using automation.",
+        Icon = () => "Tool-RunScript"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand ScriptUpdate { get; } = new(
+        () =>
+        {
+            var body = Selection?.SelectedEntities?.FirstOrDefault() as Body;
+            if (body == null)
+            {
+                Messages.Error("Please select a body to update.");
+                return;
+            }
+            Shape shape = body.Shape;
+            Box box = null;
+            while (shape != null)
+            {
+                if (shape is Box b)
+                {
+                    box = b;
+                    break;
+                }
+                shape = shape.Predecessor as Shape;
+            }
+            if (box != null)
+            {
+                box.DimensionX += 5;
+                box.DimensionY += 5;
+                box.DimensionZ += 5;
+                box.RaiseShapeChanged();
+                Commit();
+                Invalidate();
+                Messages.Info("Selected Box shape updated successfully.");
+            }
+            else
+            {
+                Messages.Warning("The selected body does not contain a Box shape to update.");
+            }
+        },
+        () => Selection?.SelectedEntities?.Any(entity => entity is Body) ?? false
+    )
+    {
+        Header = () => "Update",
+        Title = () => "Update Solid",
+        Description = () => "Update/modify the selected solid using automation.",
+        Icon = () => "Tool-RunScript"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand AutomationScripting { get; } = new(
+        () => ScriptCreate.Execute(),
+        () => ScriptCreate.CanExecute()
+    )
+    {
+        Header = () => "Automation & Scripting",
+        Title = () => "Automation & Scripting",
+        Description = () => "Create or update solid bodies using automation.",
+        Icon = () => "Tool-RunScript"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand FileExchange { get; } = new(
+        () => ExchangeCommands.ImportFileToModel.Execute(),
+        () => ExchangeCommands.ImportFileToModel.CanExecute()
+    )
+    {
+        Header = () => "File & Data Exchange",
+        Title = () => "File & Data Exchange",
+        Description = () => "Import and export data or manage model files.",
+        Icon = () => "App-Import"
+    };
+
+    public static ActionCommand PrewarmScriptCompiler { get; } = new(
+        () => ScriptUtils.WarmupScriptCompiler(),
+        () => true
+    )
+    {
+        Header = () => "Prewarm Compiler",
+        Title = () => "Prewarm Compiler",
+        Description = () => "Prewarm the script compiler to speed up execution.",
+        Icon = () => "Tool-RunScript"
+    };
 
     //--------------------------------------------------------------------------------------------------
 

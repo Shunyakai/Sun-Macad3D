@@ -6,80 +6,49 @@ using Macad.Core.Shapes;
 using Macad.Core.Topology;
 using Macad.Interaction.Visual;
 using Macad.Occt;
+using Macad.Interaction;
 
 namespace Macad.Interaction.Editors.Shapes;
 
-public class CreateSketchTool : Tool
+public class AttachSketchTool : Tool
 {
-    public enum CreateMode
-    {
-        Interactive,
-        WorkplaneXY,
-        WorkplaneXZ,
-        WorkplaneYZ,
-    }
-
-    //--------------------------------------------------------------------------------------------------
-
-    public SketchCommands.Segments TargetSegment { get; } = SketchCommands.Segments.None;
-
-    //--------------------------------------------------------------------------------------------------
-
-    readonly CreateMode _InitialCreateMode;
+    readonly Body _SketchBody;
+    Trihedron _DefaultPlanes;
     Pln _Plane = Pln.XOY;
     Pln _SavedWorkingPlane;
-    Trihedron _DefaultPlanes;
 
     //--------------------------------------------------------------------------------------------------
 
-    public CreateSketchTool(CreateMode createMode = CreateMode.Interactive, SketchCommands.Segments targetSegment = SketchCommands.Segments.None)
+    public AttachSketchTool(Body sketchBody)
     {
-        _InitialCreateMode = createMode;
-        TargetSegment = targetSegment;
+        _SketchBody = sketchBody;
     }
 
     //--------------------------------------------------------------------------------------------------
 
     protected override bool OnStart()
     {
+        if (_SketchBody == null)
+            return false;
+
         InteractiveContext.Current.WorkspaceController.Selection.SelectEntity(null);
         _SavedWorkingPlane = WorkspaceController.Workspace.WorkingPlane;
 
-        if (_InitialCreateMode == CreateMode.Interactive)
-        {
-            _DefaultPlanes = new(WorkspaceController, _SavedWorkingPlane.Position, Trihedron.Components.Planes);
-            Add(_DefaultPlanes);
-            var selectionFilter = new FaceSelectionFilter(FaceSelectionFilter.FaceType.Plane)
-                .Or(new SignatureSelectionFilter(VisualPlane.SelectionSignature));
-            var toolAction = new SelectSubshapeAction(SubshapeTypes.Face, null, selectionFilter);
-            if (!StartAction(toolAction))
-                return false;
-            toolAction.Finished += _ToolAction_Finished;
-            toolAction.Preview += _ToolActionPreview;
+        _DefaultPlanes = new(WorkspaceController, _SavedWorkingPlane.Position, Trihedron.Components.Planes);
+        Add(_DefaultPlanes);
 
-            SetHintMessage("__Select face or plane__ to which the new sketch should be aligned.");
-            SetCursor(Cursors.SelectFace);
-            return true;
-        }
+        var selectionFilter = new FaceSelectionFilter(FaceSelectionFilter.FaceType.Plane)
+            .Or(new SignatureSelectionFilter(VisualPlane.SelectionSignature));
+        var toolAction = new SelectSubshapeAction(SubshapeTypes.Face, null, selectionFilter);
+        if (!StartAction(toolAction))
+            return false;
 
-        switch (_InitialCreateMode)
-        {
-            case CreateMode.WorkplaneXY:
-                _Plane = _SavedWorkingPlane;
-                break;
+        toolAction.Finished += _ToolAction_Finished;
+        toolAction.Preview += _ToolActionPreview;
 
-            case CreateMode.WorkplaneXZ:
-                _Plane =new Pln(new Ax3(_SavedWorkingPlane.Location, _SavedWorkingPlane.YAxis.Direction.Reversed(), _SavedWorkingPlane.XAxis.Direction));
-                break;
-
-            case CreateMode.WorkplaneYZ:
-                _Plane = new Pln(new Ax3(_SavedWorkingPlane.Location, _SavedWorkingPlane.XAxis.Direction, _SavedWorkingPlane.YAxis.Direction));
-                break;
-        }
-
-        Stop();
-        _CreateSketch();
-        return false;
+        SetHintMessage("__Select face or plane__ to attach the sketch to.");
+        SetCursor(Cursors.SelectFace);
+        return true;
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -93,7 +62,7 @@ public class CreateSketchTool : Tool
 
         base.Cleanup();
     }
-        
+
     //--------------------------------------------------------------------------------------------------
 
     bool _GetPlaneFromAction(SelectSubshapeAction.EventArgs args)
@@ -119,7 +88,7 @@ public class CreateSketchTool : Tool
         }
         else if (args.SelectedAisObject != null)
         {
-            switch(_DefaultPlanes.GetComponent(args.SelectedAisObject))
+            switch (_DefaultPlanes.GetComponent(args.SelectedAisObject))
             {
                 case Trihedron.Components.PlaneXY:
                     _Plane = _SavedWorkingPlane;
@@ -132,7 +101,7 @@ public class CreateSketchTool : Tool
                     break;
                 default:
                     return false;
-            };
+            }
 
             bool flip = !args.MouseEventData.PickAxis.IsOpposite(_Plane.Axis, Maths.HalfPI);
             if (flip)
@@ -147,7 +116,7 @@ public class CreateSketchTool : Tool
     }
 
     //--------------------------------------------------------------------------------------------------
-        
+
     void _ToolActionPreview(SelectSubshapeAction action, SelectSubshapeAction.EventArgs args)
     {
         WorkspaceController.Workspace.WorkingPlane = _GetPlaneFromAction(args) ? _Plane : _SavedWorkingPlane;
@@ -161,7 +130,7 @@ public class CreateSketchTool : Tool
         {
             StopAction(action);
             Stop();
-            _CreateSketch();
+            _AttachSketch();
         }
         else
         {
@@ -173,35 +142,12 @@ public class CreateSketchTool : Tool
 
     //--------------------------------------------------------------------------------------------------
 
-    void _CreateSketch()
+    void _AttachSketch()
     {
-        var sketch = new Sketch();
-        var body = Body.Create(sketch);
-        body.Position = _Plane.Location;
-        body.Rotation = _Plane.Rotation();
-        InteractiveContext.Current.Document.Add(body);
-        InteractiveContext.Current.UndoHandler.Commit();
-
-        InteractiveContext.Current.WorkspaceController.Selection.SelectEntity(body);
-        var sketchEditorTool = new SketchEditorTool(sketch);
-        WorkspaceController.StartTool(sketchEditorTool);
-
-        if (TargetSegment == SketchCommands.Segments.Bezier)
-        {
-            sketchEditorTool.StartSegmentCreation<SketchSegmentBezierCreator>(sketchEditorTool.ContinuesSegmentCreation);
-        }
-        else if (TargetSegment == SketchCommands.Segments.Bezier2)
-        {
-            sketchEditorTool.StartSegmentCreation<SketchSegmentBezier2Creator>(sketchEditorTool.ContinuesSegmentCreation);
-        }
-        else if (TargetSegment == SketchCommands.Segments.Bezier3)
-        {
-            sketchEditorTool.StartSegmentCreation<SketchSegmentBezier3Creator>(sketchEditorTool.ContinuesSegmentCreation);
-        }
-        else if (TargetSegment == SketchCommands.Segments.Polygon)
-        {
-            sketchEditorTool.StartSegmentCreation<SketchSegmentPolygonCreator>(sketchEditorTool.ContinuesSegmentCreation);
-        }
+        _SketchBody.Position = _Plane.Location;
+        _SketchBody.Rotation = _Plane.Rotation();
+        InteractiveContext.Current?.UndoHandler.Commit();
+        InteractiveContext.Current?.WorkspaceController.Invalidate();
     }
 
     //--------------------------------------------------------------------------------------------------

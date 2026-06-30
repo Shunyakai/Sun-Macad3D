@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Macad.Interaction.Dialogs;
 using Macad.Common;
 using Macad.Core;
@@ -99,7 +99,8 @@ public static class ExchangeCommands
                 }
             }
         },
-        () => Selection.SelectedEntities.Count > 0 
+        () => Selection?.SelectedEntities != null 
+              && Selection.SelectedEntities.Count > 0 
               && Selection.SelectedEntities.TrueForAll(entity => entity is Body))
     {
         Header = () => "Export Selected...",

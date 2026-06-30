@@ -30,7 +30,8 @@ public static class SketchCommands
         Bezier,
         Bezier2,
         Bezier3,
-        Pipe
+        Pipe,
+        Polygon
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -421,6 +422,9 @@ public static class SketchCommands
                 case Segments.Rectangle:
                     _StartOrStopSegmentCreator<SketchSegmentRectangleCreator>(false);
                     break;
+                case Segments.Bezier:
+                    _StartOrStopSegmentCreator<SketchSegmentBezierCreator>(true);
+                    break;
                 case Segments.Bezier2:
                     _StartOrStopSegmentCreator<SketchSegmentBezier2Creator>(true);
                     break;
@@ -430,6 +434,9 @@ public static class SketchCommands
                 case Segments.Pipe:
     _StartOrStopSegmentCreator<SketchSegmentPipeCreator>(false);
     break;
+                case Segments.Polygon:
+                    _StartOrStopSegmentCreator<SketchSegmentPolygonCreator>(false);
+                    break;
             }
         },
         (creator) => InteractiveContext.Current?.WorkspaceController?.CurrentTool is SketchEditorTool
@@ -447,8 +454,10 @@ public static class SketchCommands
                 case Segments.EllipticalArcCenter: return "Elliptical Arc";
                 case Segments.Pipe:                return "Pipe Profile";
                 case Segments.Rectangle:           return "Rectangle";
+                case Segments.Bezier:              return "Bézier";
                 case Segments.Bezier2:             return "Quadratic Bézier";
                 case Segments.Bezier3:             return "Cubic Bézier";
+                case Segments.Polygon:             return "Regular Polygon";
                 default:                           return "Create Segment";
             }
         },
