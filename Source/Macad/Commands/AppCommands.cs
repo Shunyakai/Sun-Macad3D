@@ -658,4 +658,15 @@ public static class AppCommands
         Icon = () => "App-Preferences"
     };
 
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand CustomizationUi { get; } = new(
+        () => ShowPreferencesDialog.Execute(),
+        () => true)
+    {
+        Header = () => "Customization & UI",
+        Description = () => "Configure application preferences and UI settings.",
+        Icon = () => "App-Preferences"
+    };
+
 }

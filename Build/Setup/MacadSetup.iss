@@ -47,8 +47,8 @@ InternalCompressLevel=max
 SolidCompression=True
 ChangesAssociations=True
 
-AlwaysShowComponentsList=False
-ShowComponentSizes=False
+AlwaysShowComponentsList=True
+ShowComponentSizes=True
 AllowUNCPath=False
 ShowLanguageDialog=no
 LanguageDetectionMethod=none
@@ -67,6 +67,16 @@ DisableProgramGroupPage=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
+
+;///////////////////////////////////////////////////////////////////////////////
+
+[Types]
+Name: "full"; Description: "Full installation"
+Name: "compact"; Description: "Compact installation"
+Name: "custom"; Description: "Custom installation"; Flags: iscustom
+
+[Components]
+Name: "main"; Description: "Main Application"; Types: full compact custom; Flags: fixed
 
 ;///////////////////////////////////////////////////////////////////////////////
 

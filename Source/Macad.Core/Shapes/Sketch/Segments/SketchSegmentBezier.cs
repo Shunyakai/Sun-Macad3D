@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Macad.Common.Serialization;
@@ -37,6 +37,13 @@ public class SketchSegmentBezier : SketchSegment
 
     //--------------------------------------------------------------------------------------------------
 
+    public SketchSegmentBezier(int[] points)
+    {
+        Points = points;
+    }
+
+    //--------------------------------------------------------------------------------------------------
+
     public SketchSegmentBezier(int p1, int cp, int p2)
     {
         Points = new int[] { p1, cp, p2 };
@@ -53,14 +60,7 @@ public class SketchSegmentBezier : SketchSegment
 
     public override SketchSegment Clone()
     {
-        switch (Points.Length)
-        {
-            case 3:
-                return base.Clone(new SketchSegmentBezier(Points[0], Points[1], Points[2]));
-            case 4:
-                return base.Clone(new SketchSegmentBezier(Points[0], Points[1], Points[2], Points[3]));
-        }
-        throw new NotImplementedException();
+        return base.Clone(new SketchSegmentBezier((int[])Points.Clone()));
     }
 
     //--------------------------------------------------------------------------------------------------

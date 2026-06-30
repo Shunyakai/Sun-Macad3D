@@ -51,9 +51,9 @@ record FileSet
     public string TargetDir;
     public string Flags;
     public List<string> Files;
+    public string Components;
 }
 
-/***************************************************************/
 
 static List<FileSet> FileSets = new List<FileSet> {
     {
@@ -102,7 +102,7 @@ static List<FileSet> FileSets = new List<FileSet> {
                 @"*.*",
             }
         }
-    },
+    }
 };
 
 
@@ -162,6 +162,12 @@ bool _ResolveFileList()
             string fileName = Path.GetFileName(file);
             foreach(var wcfile in Directory.EnumerateFiles(fileDir, fileName, soption))
             {
+                if (fileSet.Name.StartsWith("freecad_", StringComparison.OrdinalIgnoreCase))
+                {
+                    var ext = Path.GetExtension(wcfile).ToLower();
+                    if (ext == ".pdb" || ext == ".ilk" || ext == ".lib" || ext == ".exp")
+                        continue;
+                }
                 var relativeDir = Utils.GetRelativePath(fileDir, Path.GetDirectoryName(wcfile));
                 fileSet.Files.Add(Path.Combine(relativeDir, Path.GetFileName(wcfile)));
             }
@@ -207,7 +213,8 @@ bool _BuildSetup()
         {
             var sourceFile = Path.Combine(rootPath, fileSet.SourceDir, file);
             var targetDir = Path.Combine(fileSet.TargetDir, Path.GetDirectoryName(file));
-            defFile.WriteLine($"Source: \"{sourceFile}\"; DestDir: \"{targetDir}\"; Flags: {fileFlags}");
+            var compString = string.IsNullOrEmpty(fileSet.Components) ? "" : $"; Components: {fileSet.Components}";
+            defFile.WriteLine($"Source: \"{sourceFile}\"; DestDir: \"{targetDir}\"; Flags: {fileFlags}{compString}");
         }
     }
     defFile.WriteLine("");

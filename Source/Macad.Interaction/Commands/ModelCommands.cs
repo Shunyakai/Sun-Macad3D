@@ -144,6 +144,104 @@ public static class ModelCommands
         HelpTopic = (mode) => "0dc12d15-5450-460c-909b-f25ed1cf4b7e"
     };
 
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand CreateSketchWithBezier { get; } = new(
+        () =>
+        {
+            StartTool(new CreateSketchTool(CreateSketchTool.CreateMode.Interactive, SketchCommands.Segments.Bezier));
+        },
+        CanStartTool)
+    {
+        Header = () => "Bézier",
+        Title = () => "Create Bézier",
+        Icon = () => "Sketch-SegmentBezier",
+        Description = () => "Creates a new sketch and starts drawing a multi-point Bézier curve.",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
+                                                EqualityToBoolConverter.Instance, nameof(CreateSketchTool))
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand CreateSketchWithBezier2 { get; } = new(
+        () =>
+        {
+            StartTool(new CreateSketchTool(CreateSketchTool.CreateMode.Interactive, SketchCommands.Segments.Bezier2));
+        },
+        CanStartTool)
+    {
+        Header = () => "Quadratic Bézier",
+        Title = () => "Create Quadratic Bézier",
+        Icon = () => "Sketch-SegmentBezier2",
+        Description = () => "Creates a new sketch and starts drawing a quadratic Bézier curve.",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
+                                                EqualityToBoolConverter.Instance, nameof(CreateSketchTool))
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand CreateSketchWithBezier3 { get; } = new(
+        () =>
+        {
+            StartTool(new CreateSketchTool(CreateSketchTool.CreateMode.Interactive, SketchCommands.Segments.Bezier3));
+        },
+        CanStartTool)
+    {
+        Header = () => "Cubic Bézier",
+        Title = () => "Create Cubic Bézier",
+        Icon = () => "Sketch-SegmentBezier3",
+        Description = () => "Creates a new sketch and starts drawing a cubic Bézier curve.",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
+                                                EqualityToBoolConverter.Instance, nameof(CreateSketchTool))
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand CreateAttachSketch { get; } = new(
+        () =>
+        {
+            var body = InteractiveContext.Current.WorkspaceController.Selection.SelectedEntities.First() as Body;
+            if (body?.Shape?.ShapeType != ShapeType.Sketch)
+                return;
+
+            StartTool(new AttachSketchTool(body));
+        },
+        CanExecuteOnSingleSketch)
+    {
+        Header = () => "Attach Sketch",
+        Description = () => "Attaches/maps an existing sketch to a face or plane.",
+        Icon = () => "Tool-SketchEditor",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
+                                                EqualityToBoolConverter.Instance, nameof(AttachSketchTool))
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand CreateRegularPolygonSketch { get; } = new(
+        () =>
+        {
+            var tool = InteractiveContext.Current?.WorkspaceController?.CurrentTool as SketchEditorTool;
+            if (tool != null)
+            {
+                tool.StartSegmentCreation<SketchSegmentPolygonCreator>(tool.ContinuesSegmentCreation);
+            }
+            else
+            {
+                StartTool(new CreateSketchTool(CreateSketchTool.CreateMode.Interactive, SketchCommands.Segments.Polygon));
+            }
+        },
+        CanStartTool)
+    {
+        Header = () => "Regular Polygon",
+        Title = () => "Create Regular Polygon",
+        Description = () => "Creates a regular polygon sketch on the active workplane.",
+        Icon = () => "Sketch-SegmentPolygon",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
+                                                EqualityToBoolConverter.Instance, nameof(CreateSketchTool))
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
     public static ActionCommand CreateRegularPolygon { get; } = new(
         () => { StartTool(new CreateRegularPolygonTool()); }, CanStartTool)
     {
@@ -213,6 +311,21 @@ public static class ModelCommands
         },
         IsCheckedBinding = (op) => BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
                                                         EqualityToBoolConverter.Instance, $"Boolean{op.ToString()}Tool")
+    };
+
+    public static ActionCommand CreateHelix { get; } = new(
+        () =>
+        {
+            StartTool(new CreateHelixTool(Selection.SelectedEntities.First() as Body));
+        },
+        CanExecuteOnSingleSketch)        
+    {
+        Header = () => "Additive Helix",
+        Title = () => "Create Additive Helix",
+        Description = () => "Creates a solid by sweeping a sketch contour along a helix.",
+        Icon = () => "Form-Helix",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
+                                                EqualityToBoolConverter.Instance, nameof(CreateHelixTool))
     };
 
     //--------------------------------------------------------------------------------------------------
@@ -529,6 +642,25 @@ public static class ModelCommands
         IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
                                                 EqualityToBoolConverter.Instance, nameof(CreateTaperTool))
     };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand CreateDraft { get; } = new(
+        () =>
+        {
+            var body1 = Selection.SelectedEntities[0] as Body;
+            var tool = new CreateTaperTool(body1);
+            InteractiveContext.Current.WorkspaceController.StartTool(tool); 
+        },
+        CanExecuteOnSingleSolid)
+    {
+        Header = () => "Draft",
+        Description = () => "Creates a draft angle (taper) on selected faces.",
+        Icon = () => "Form-Taper",
+        HelpTopic = "ef7f7484-88f2-45d7-8062-771c8c0ad04e",
+        IsCheckedBinding = BindingHelper.Create(InteractiveContext.Current, $"{nameof(EditorState)}.{nameof(EditorState.ActiveTool)}", BindingMode.OneWay,
+                                                EqualityToBoolConverter.Instance, nameof(CreateTaperTool))
+    };
         
     //--------------------------------------------------------------------------------------------------
 
@@ -545,8 +677,31 @@ public static class ModelCommands
         },
         CanExecuteOnSingleSketch)
     {
-        Header = () => "Pipe",
-        Description = () => "Creates a pipe by sweeping a profile along a sketch based path.",
+        Header = () => "Sweep",
+        Title = () => "Create Sweep",
+        Description = () => "Creates a shape by sweeping a profile along a sketch based path.",
+        Icon = () => "Form-Pipe",
+        HelpTopic = "69425fd0-ff1a-4dc3-9014-12860684e057"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand CreateAdditivePipe { get; } = new(
+        () =>
+        {
+            var body = InteractiveContext.Current.WorkspaceController.Selection.SelectedEntities.First() as Body;
+            if (body?.Shape?.ShapeType != ShapeType.Sketch)
+                return;
+
+            Pipe.Create(body);
+            InteractiveContext.Current?.UndoHandler.Commit();
+            Invalidate();
+        },
+        CanExecuteOnSingleSketch)
+    {
+        Header = () => "Additive Pipe",
+        Title = () => "Create Additive Pipe",
+        Description = () => "Creates a solid by sweeping a profile along a path.",
         Icon = () => "Form-Pipe",
         HelpTopic = "69425fd0-ff1a-4dc3-9014-12860684e057"
     };
@@ -569,6 +724,28 @@ public static class ModelCommands
     {
         Header = () => "Offset",
         Description = () => "Offsets a sketch or solid.",
+        Icon = () => "Mod-Offset",
+        HelpTopic = "af5f6317-5201-4c55-b56d-da368f359324"
+    };
+
+    //--------------------------------------------------------------------------------------------------
+
+    public static ActionCommand CreateThickness { get; } = new(
+        () =>
+        {
+            var body = InteractiveContext.Current.WorkspaceController.Selection.SelectedEntities.First() as Body;
+            if (body?.Shape?.ShapeType != ShapeType.Sketch 
+                && body?.Shape?.ShapeType != ShapeType.Solid)
+                return;
+
+            Offset.Create(body);
+            InteractiveContext.Current?.UndoHandler.Commit();
+            Invalidate();
+        },
+        () => CanExecuteOnSingleSketch() || CanExecuteOnSingleSolid())
+    {
+        Header = () => "Thickness",
+        Description = () => "Creates a shell or thickness offset on a solid or sketch.",
         Icon = () => "Mod-Offset",
         HelpTopic = "af5f6317-5201-4c55-b56d-da368f359324"
     };

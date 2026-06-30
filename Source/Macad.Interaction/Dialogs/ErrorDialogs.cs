@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using Macad.Presentation;
 
@@ -125,7 +125,7 @@ public static class ErrorDialogs
                                TaskDialogCommonButtons.Close, TaskDialogIcon.Error);
     }
 
-    //--------------------------------------------------------------------------------------------------
+
 
     public static void CannotExport(string filePath)
     {

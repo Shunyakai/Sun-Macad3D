@@ -77,6 +77,12 @@
                                  mmp:Command.Action="{x:Static mmi:DocumentCommands.SaveAll}"/>
                 <Separator />
 
+                <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ExchangeCommands.ImportFileToModel}"
+                                 AutomationProperties.AutomationId="AppMenuImportFileToModelDirect"/>
+                <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ExchangeCommands.ExportSelectedBrep}"
+                                 AutomationProperties.AutomationId="AppMenuExportSelectedBrepDirect"/>
+                <Separator />
+
                 <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:WorkspaceCommands.Print}"
                                  AutomationProperties.AutomationId="AppMenuPrint" />
                 <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:WorkspaceCommands.PrintPreview}"
@@ -474,24 +480,20 @@
 
             <Fluent:RibbonGroupBox Header="Create"
                                    Name="Create">
-                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateBox}"
-                                     AutomationProperties.AutomationId="CreateBox" 
-                                     SizeDefinition="Large,Middle,Small" />
-
-                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateCylinder}"
-                                     AutomationProperties.AutomationId="CreateCylinder" 
-                                     SizeDefinition="Large,Middle,Small" />
-
-                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateTorus}"
-                                     AutomationProperties.AutomationId="CreateTorus"
-                                     SizeDefinition="Large,Middle,Small" />
-                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateCone}"
-                                     AutomationProperties.AutomationId="CreateCone" 
-                                     SizeDefinition="Large,Middle,Small" />
-
-                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateSphere}"
-                                     AutomationProperties.AutomationId="CreateSphere"
-                                     SizeDefinition="Large,Middle,Small" />
+                <Fluent:SplitButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateBox}"
+                                    AutomationProperties.AutomationId="CreateBoxSplit"
+                                    SizeDefinition="Large,Large,Large">
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateBox}"
+                                     AutomationProperties.AutomationId="CreateBoxMenu"/>
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateCylinder}"
+                                     AutomationProperties.AutomationId="CreateCylinderMenu"/>
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateSphere}"
+                                     AutomationProperties.AutomationId="CreateSphereMenu"/>
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateCone}"
+                                     AutomationProperties.AutomationId="CreateConeMenu"/>
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateTorus}"
+                                     AutomationProperties.AutomationId="CreateTorusMenu"/>
+                </Fluent:SplitButton>
 
                 <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateRegularPolygon}"
                                      AutomationProperties.AutomationId="CreateRegularPolygon" 
@@ -514,6 +516,13 @@
                     <Fluent:MenuItem CommandParameter="Interactive"
                                      mmp:Command.Action="{x:Static mmi:ModelCommands.CreateSketchAligned}"
                                      AutomationProperties.AutomationId="CreateSketchInteractive"/>
+                    <Fluent:GroupSeparatorMenuItem Header="Draw Bezier Curve" />
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateSketchWithBezier}"
+                                     AutomationProperties.AutomationId="CreateSketchWithBezier" />
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateSketchWithBezier2}"
+                                     AutomationProperties.AutomationId="CreateSketchWithBezier2" />
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateSketchWithBezier3}"
+                                     AutomationProperties.AutomationId="CreateSketchWithBezier3" />
                 </Fluent:SplitButton>
             </Fluent:RibbonGroupBox>
 
@@ -541,13 +550,25 @@
                 <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateTaper}" 
                                      AutomationProperties.AutomationId="CreateTaper"
                                      SizeDefinition="Large,Middle,Small" />
+                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateDraft}" 
+                                     AutomationProperties.AutomationId="CreateDraft"
+                                     SizeDefinition="Large,Middle,Small" />
 
                 <Fluent:Button mmp:Command.Action="{x:Static mmi:ModelCommands.CreateOffset}"
                                AutomationProperties.AutomationId="CreateOffset"
                                SizeDefinition="Large,Middle,Small" />
+                <Fluent:Button mmp:Command.Action="{x:Static mmi:ModelCommands.CreateThickness}"
+                               AutomationProperties.AutomationId="CreateThickness"
+                               SizeDefinition="Large,Middle,Small" />
 
                 <Fluent:Button mmp:Command.Action="{x:Static mmi:ModelCommands.CreateScale}"
                                AutomationProperties.AutomationId="CreateScale"
+                               SizeDefinition="Large,Middle,Small" />
+                <Fluent:Button mmp:Command.Action="{x:Static mmi:ModelCommands.CreateAttachSketch}"
+                               AutomationProperties.AutomationId="CreateAttachSketch"
+                               SizeDefinition="Large,Middle,Small" />
+                <Fluent:Button mmp:Command.Action="{x:Static mmi:ModelCommands.CreateRegularPolygonSketch}"
+                               AutomationProperties.AutomationId="CreateRegularPolygon"
                                SizeDefinition="Large,Middle,Small" />
             </Fluent:RibbonGroupBox>
 
@@ -572,12 +593,20 @@
 
                 <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateExtrude}"
                                      AutomationProperties.AutomationId="CreateExtrude"/>
-                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateRevolve}"
-                                     AutomationProperties.AutomationId="CreateRevolve"/>
-                <Fluent:ToggleButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateLoft}"
-                                     AutomationProperties.AutomationId="CreateLoft"/>
-                <Fluent:Button mmp:Command.Action="{x:Static mmi:ModelCommands.CreatePipe}"
-                               AutomationProperties.AutomationId="CreatePipe"/>
+                <Fluent:SplitButton mmp:Command.Action="{x:Static mmi:ModelCommands.CreateLoft}"
+                                    AutomationProperties.AutomationId="CreateLoftSplit"
+                                    SizeDefinition="Large,Large,Large">
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateLoft}"
+                                     AutomationProperties.AutomationId="CreateLoftMenu"/>
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateRevolve}"
+                                     AutomationProperties.AutomationId="CreateRevolveMenu"/>
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreatePipe}"
+                                     AutomationProperties.AutomationId="CreatePipeMenu"/>
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateAdditivePipe}"
+                                     AutomationProperties.AutomationId="CreateAdditivePipeMenu"/>
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ModelCommands.CreateHelix}"
+                                     AutomationProperties.AutomationId="CreateHelixMenu"/>
+                </Fluent:SplitButton>
 
             </Fluent:RibbonGroupBox>
 
@@ -687,6 +716,57 @@
 
             <Fluent:RibbonGroupBox Header="Workflow">
                 <Fluent:Button mmp:Command.Action="{x:Static mmw:AppCommands.ShowShapeInspector}"/>
+
+                <Fluent:SplitButton mmp:Command.Action="{x:Static mmi:ToolboxCommands.AutomationScripting}"
+                                    AutomationProperties.AutomationId="RunBrlCadScripting">
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ToolboxCommands.ScriptCreate}"
+                                     Header="Create"
+                                     Icon="{mmp:IconResource Tool-RunScript}" />
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ToolboxCommands.ScriptUpdate}"
+                                     Header="Update"
+                                     Icon="{mmp:IconResource Tool-RunScript}" />
+                </Fluent:SplitButton>
+
+                <Fluent:SplitButton mmp:Command.Action="{x:Static mmw:AppCommands.CustomizationUi}"
+                                    AutomationProperties.AutomationId="RunBrlCadCustomization">
+                    <Fluent:MenuItem mmp:Command.Action="{x:Static mmw:AppCommands.ShowPreferencesDialog}"
+                                     Header="Preferences"
+                                     Icon="{mmp:IconResource App-Preferences}" />
+                </Fluent:SplitButton>
+
+                <Fluent:SplitButton mmp:Command.Action="{x:Static mmi:ToolboxCommands.FileExchange}"
+                                    AutomationProperties.AutomationId="FileDataExchange">
+                    <Fluent:MenuItem Header="Document Management"
+                                     Icon="{mmp:IconResource App-OpenModel}">
+                        <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:DocumentCommands.CreateNewModel}"
+                                         Header="New Model"
+                                         Icon="{mmp:IconResource App-NewModel}" />
+                        <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:DocumentCommands.OpenModelFrom}"
+                                         Header="Open Model..."
+                                         Icon="{mmp:IconResource App-OpenModel}" />
+                        <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:DocumentCommands.SaveModel}"
+                                         Header="Save Model"
+                                         Icon="{mmp:IconResource App-SaveModel}" />
+                        <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:DocumentCommands.SaveModelAs}"
+                                         Header="Save Model As..."
+                                         Icon="{mmp:IconResource App-SaveModel}" />
+                    </Fluent:MenuItem>
+                    <Fluent:MenuItem Header="Import/Export"
+                                     Icon="{mmp:IconResource App-Export}">
+                        <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ExchangeCommands.ImportFileToModel}"
+                                         Header="Import..."
+                                         Icon="{mmp:IconResource App-Import}" />
+                        <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ExchangeCommands.ExportVisibleBrep}"
+                                         Header="Export Visible..."
+                                         Icon="{mmp:IconResource App-Export}" />
+                        <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ExchangeCommands.ExportSelectedBrep}"
+                                         Header="Export Selected..."
+                                         Icon="{mmp:IconResource App-Export}" />
+                        <Fluent:MenuItem mmp:Command.Action="{x:Static mmi:ToolboxCommands.ExportViewHlr}"
+                                         Header="Export PDF..."
+                                         Icon="{mmp:IconResource View-ExportDrawing}" />
+                    </Fluent:MenuItem>
+                </Fluent:SplitButton>
 
                 <Fluent:SplitButton mmp:Command.Action="{x:Static mmi:ToolboxCommands.RunScriptFrom}"
                                     AutomationProperties.AutomationId="RunScript">
@@ -1016,8 +1096,11 @@
                                      mmp:Command.Action="{x:Static mmi:SketchCommands.CreatePolyLine}"
                                      AutomationProperties.AutomationId="CreatePolyLineSegment"/>
                 <Fluent:ToggleButton CommandParameter="Line"
-                                     mmp:Command.Action="{x:Static mmi:SketchCommands.CreateSegment}"
-                                     AutomationProperties.AutomationId="CreateLineSegment"/>
+                                      mmp:Command.Action="{x:Static mmi:SketchCommands.CreateSegment}"
+                                      AutomationProperties.AutomationId="CreateLineSegment"/>
+                <Fluent:ToggleButton CommandParameter="Bezier"
+                                     mmp:Command.Action="{x:Static mmi:SketchCommands.CreateSegment}" 
+                                     AutomationProperties.AutomationId="CreateBezierSegment"/>
                 <Fluent:ToggleButton CommandParameter="Bezier2"
                                      mmp:Command.Action="{x:Static mmi:SketchCommands.CreateSegment}" 
                                      AutomationProperties.AutomationId="CreateBezier2Segment"/>
@@ -1042,6 +1125,9 @@
                 <Fluent:ToggleButton CommandParameter="EllipticalArcCenter"
                                      mmp:Command.Action="{x:Static mmi:SketchCommands.CreateSegment}" 
                                      AutomationProperties.AutomationId="CreateEllipticalArcCenterSegment"/>
+                <Fluent:ToggleButton CommandParameter="Polygon"
+                                     mmp:Command.Action="{x:Static mmi:SketchCommands.CreateSegment}" 
+                                     AutomationProperties.AutomationId="CreatePolygonSegment"/>
             </Fluent:RibbonGroupBox>
 
             <Fluent:RibbonGroupBox Name="Constraint"  Header="Create Constraint">
